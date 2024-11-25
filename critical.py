@@ -28,7 +28,7 @@ class CriticalDensity:
         # However, each trial the change will get relatively smaller proportional to alpha.
         # The inital step size is determined by the step value.
 
-        # Step size
+        # Maximum step size
         self.step = step
 
         # Alpha is a decay constant
@@ -40,7 +40,7 @@ class CriticalDensity:
 
 
 
-    # Finds the critical density
+    # Finds the critical density by gradient descent (-ish)
     def find(self) -> float:
         
         for experiment in range(self.experiments):
@@ -58,17 +58,24 @@ class CriticalDensity:
             # Determines the step size
             if result['infinite']:
                 
-                # Step size is proportional to how quickly the board went infinite
-                s = result['trials'] / result['goal']
+                # Step size is proportional to how quickly the board went infinite.
+                # The faster the infinite, the greater the change
+                s = 1 - result['trials'] / result['goal']
 
             else:
 
-                # Step size is proportional to how far it got to being infinite
+                # Step size is proportional to how close it got to being infinite.
+                # The closer to infinite, the smaller the change.
+                # Negative value since we want rho to decrease
                 # I'll need to play around with this one
-                s = result['max'] / result['cutoff']
+                s = result['max'] / result['cutoff'] - 1
 
-            self.rho += s
+            # Updates density
+            self.rho += s * self.step
 
             # Decreases step size exponentially
             self.step *= self.alpha
+
+        # The equilibrium value
+        return self.rho
 
