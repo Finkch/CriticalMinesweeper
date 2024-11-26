@@ -77,7 +77,7 @@ class Experiment:
 
     def __str__(self) -> str:
 
-        s = 'Trial results: valid density.\n' if len(self.results) == self.trials else 'Trial results: INFINTIE.\n'
+        s = 'Experiment results: valid density.\n' if len(self.results) == self.trials else 'Experiment results: INFINTIE.\n'
 
         s += f'.. Trials:\t\t{len(self.results)}\n'
         s += f'.. Density:\t\t{self.rho}\n'
