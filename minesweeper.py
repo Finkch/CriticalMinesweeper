@@ -4,6 +4,7 @@
 #   1 = is revealed
 #   2 = is mine
 #   4 = at least one adjacent mine
+#   8 = item has been placed in the reveal queue
 
 from random import random
 
