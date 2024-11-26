@@ -26,13 +26,13 @@ class Minesweeper:
         self.grid: dict[tuple[int]] = {}
 
         # The mine density
-        self.rho = rho
+        self.rho: float = rho
 
         # When a reveal is considered infinite
-        self.cutoff = cutoff
+        self.cutoff: int = cutoff
 
         # A list of offsets used to access neighbours
-        self.offsets = [(dx, dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1)]
+        self.offsets: list[tuple[int]] = [(dx, dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1)]
 
 
         # Starting cell.
@@ -66,19 +66,19 @@ class Minesweeper:
         self.grid[pos] = self.mine()
 
     # Rolls a check whether or not there should be a mine
-    def mine(self):
+    def mine(self) -> int:
         return 2 if random() < self.rho and self.reveals > 1 else 0
     
 
     # Returns a list of neighbouring positions
-    def neighbours(self, pos):
+    def neighbours(self, pos: tuple[int]) -> list[tuple[int]]:
         x, y = pos[0], pos[1]
         return [(x + dx, y + dy) for dx, dy in self.offsets]
     
 
 
     # Reveals a grid cell, potentially expanding out to its neighbours
-    def reveal(self, pos) -> None:
+    def reveal(self, pos: tuple[int]) -> None:
 
         # I will likely remove this check once everything is working.
         # This check decreases performance!
