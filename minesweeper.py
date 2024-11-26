@@ -10,7 +10,7 @@ from random import random
 
 # rho is the density of mines, aka p(mine).
 # cutoff is the number of reveals before we say "yup, that's an infinite reveal".
-class Board:
+class Minesweeper:
     def __init__(self, rho: float, cutoff: int) -> None:
         
         # the number of reveals

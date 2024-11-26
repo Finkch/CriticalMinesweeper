@@ -1,6 +1,6 @@
 # Experiment is a series of trials at a given density
 
-from board import Board
+from minesweeper import Minesweeper
 from math import ceil
 
 class Experiment:
@@ -25,7 +25,7 @@ class Experiment:
         for trial in range(self.trials):
 
             # Creates new board
-            board = Board(self.rho, self.cutoff)
+            board = Minesweeper(self.rho, self.cutoff)
 
             # Runs a trial
             board.go()
