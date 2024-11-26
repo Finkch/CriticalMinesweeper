@@ -2,8 +2,10 @@
 
 from experiment import Experiment
 
+from time import time
+
 class CriticalDensity:
-    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, step: float, alpha: float) -> None:
+    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, step: float, alpha: float) -> None:
         
         # The number of experiments to run
         self.experiments = experiments
@@ -11,6 +13,8 @@ class CriticalDensity:
         # The number of trials per experiment
         self.trials = trials
 
+        # Whether to end trials early
+        self.do_cutoff = do_cutoff
 
 
         # Starting values.
@@ -38,6 +42,8 @@ class CriticalDensity:
         # A list of experimental results
         self.results = []
 
+        self.time_results = []
+
 
 
     # Finds the critical density by gradient descent (-ish)
@@ -49,13 +55,16 @@ class CriticalDensity:
                 print(f'Beginning experiment {experiment} of {self.experiments}:')
 
             # Creates a new experiment
-            exp = Experiment(self.rho, self.cutoff, self.trials)
+            exp = Experiment(self.rho, self.cutoff, self.trials, self.do_cutoff)
 
             # Runs the experiment
+            start = time()
             result = exp.begin()
+            end = time()
 
             # Adds the experiment's results
             self.results.append(result)
+            self.time_results.append(end - start)
 
 
             # Determines the step size
@@ -82,6 +91,7 @@ class CriticalDensity:
                 print(f'.. Step percent:\t{abs(s):.4f}')
                 print(f'.. Current step:\t{self.step:.4f} -> {self.step * self.alpha:4f}')
                 print(f'.. Density:\t\t{self.rho:.4f} -> {self.rho + delta:.4f} ({delta:+.4f})')
+                print(f'.. Time taken:\t\t{end - start:.4f}s')
                 print(exp)
 
             self.rho += delta
@@ -89,6 +99,17 @@ class CriticalDensity:
             # Decreases step size exponentially
             self.step *= self.alpha
 
+        self.time_results.sort()
+
         # The equilibrium value
         return self.rho
 
+
+    def str_time(self):
+        return f"""
+Performance data:
+.. Mean time:\t\t{sum(self.time_results) / len(self.time_results):.4f}s
+.. Median time:\t\t{self.time_results[len(self.time_results) // 2]:.4f}s
+.. Minimum time:\t{self.time_results[0]:.4f}s
+.. Maximum time:\t{self.time_results[-1]:.4f}s
+"""
