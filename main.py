@@ -29,56 +29,28 @@ from time import time
 
 # Performs many experiment to find critical density
 def main():
+
+    performance = True
     
-    experiments = int(1e2)
+    experiments = int(1e1)
     trials = int(1e3)
-    rho = 3 / 5
-    cutoff = 1e5
-    step = 0.3
+    cutoff = 1e3
     alpha = 0.65
+    step = 0.3
+    rho = 3 / 5
+    do_cutoff = True
 
-    finder = CriticalDensity(experiments, trials, rho, cutoff, step, alpha)
+    if performance:
+        rho = 0.05
+        step = 0
+        do_cutoff = False
 
-    print(finder.find(False))
+    finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, step, alpha)
 
-# Performs an experiment to figure out its speed
-def performance():
-    
-    trials = int(1e3)
-    rho = 0.05      # Roughly rho_critical / 2. More or less guarantees infinite reveal
-    cutoff = 1e5
+    print(finder.find(quiet = False))
 
-    experiments = 10
-
-    results = []
-
-    for experiment in range(experiments):
-
-        print(f'Starting experiment {experiment + 1}...')
-
-        # Experiment setup
-        exp = Experiment(rho, cutoff, trials)
-
-        # Runs a trial
-        start = time()
-
-        exp.begin()
-
-        end = time()
-
-        # Experiment end
-        results.append(end - start)
-
-    results.sort()
-
-    print(f'\nExperiment concluded:')
-    print(f'.. Mean time:\t{sum(results) / len(results):.4f}s')
-    print(f'.. Median time:\t{results[len(results) // 2]:.4f}s')
-    print(f'.. Minimum time:\t{results[0]:.4f}s')
-    print(f'.. Maximum time:\t{results[-1]:.4f}s')
+    print(finder.str_time())
 
 
 
-
-#main()
-performance()
+main()
