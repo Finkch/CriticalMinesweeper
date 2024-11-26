@@ -19,10 +19,10 @@ class Minesweeper:
         # a queue of which cells to reveal next.
         # this approach allows a radial expansion.
         # Effectively a 1d list of vectors
-        self.reveal_queue: RevealQueue = RevealQueue()
+        self.reveal_queue: list[tuple[int]] = []
 
         # The board grid
-        self.grid: dict[dict[int]] = {}
+        self.grid: dict[tuple[int]] = {}
 
         # The mine density
         self.rho = rho
@@ -30,127 +30,112 @@ class Minesweeper:
         # When a reveal is considered infinite
         self.cutoff = cutoff
 
+        # A list of offsets used to access neighbours
+        self.offsets = [(dx, dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1)]
+
 
         # Starting cell.
         # In modern Minesweeper, first reveal is guaranteed to be a a zero.
         # Since the point of this isn't creating a fair game but rather fidning
         # the critical density, no need to implement this.
         # That does mean the critical density is marginally higher in modern games over classic ones.
-        self.add(0, 0)
+        self.add((0, 0))
 
 
     # Does the game of expand
     def go(self) -> None:
 
         # First reveal to populate the reveal queue
-        self.grid[0][0] |= 8
-        self.reveal_queue.add(0, 0)
+        self.grid[(0, 0)] |= 8
+        self.reveal_queue.append((0, 0))
 
         # Keeps revealing cells until either the cutoff is reached, or no cells left to reveal
         while len(self.reveal_queue) > 0 and self.reveals < self.cutoff:
-            self.reveal(*self.reveal_queue.pop())
+            self.reveal(self.reveal_queue.pop(0))
     
 
     # Adds an empty cell to the grid
-    def add(self, x: int, y: int) -> None:
+    def add(self, pos: tuple[int]) -> None:
 
         # I will likely remove this check once everything is working.
         # This check decreases performance!
-        assert not self.inbounds(x, y), f"Cannot add cell in occupied positions b({x}, {y})"
-
-        # Creates the row if it does not exist
-        if x not in self.grid:
-            self.grid[x] = {}
+        assert pos not in self.grid, f"Cannot add cell in occupied positions b({pos[0]}, {pos[1]})"
         
         # Adds the new cell
-        self.grid[x][y] = self.mine()
+        self.grid[pos] = self.mine()
 
     # Rolls a check whether or not there should be a mine
     def mine(self):
         return 2 if random() < self.rho and self.reveals > 1 else 0
     
 
+    # Returns a list of neighbouring positions
+    def neighbours(self, pos):
+        x, y = pos[0], pos[1]
+        return [(x + dx, y + dy) for dx, dy in self.offsets]
+    
+
 
     # Reveals a grid cell, potentially expanding out to its neighbours
-    def reveal(self, x: int, y: int) -> None:
+    def reveal(self, pos) -> None:
 
         # I will likely remove this check once everything is working.
         # This check decreases performance!
-        assert not self.revealed(x, y), f"Cell is already revealed at b({x}, {y})"
+        assert not self.revealed(pos), f"Cell is already revealed at b({pos[0]}, {pos[1]})"
+
+        # For near negligably faster access
+        grid = self.grid
 
         # Reaveals the cell
-        self.grid[x][y] |= 1
+        grid[pos] |= 1
 
         # Increments the number of reveals
         self.reveals += 1
+
+        # Neighbours of this cell
+        adj = self.neighbours(pos)
         
         # Creates new cells in unoccupied grid positions
-        for u in range(x - 1, x + 2):
-            for v in range(y - 1, y + 2):
+        for u, v in adj:
+                
+            # Position of the neighbour
+            npos = (u, v)
 
-                # Fills unoccupied cells
-                if not self.inbounds(u, v):
-                    self.add(u, v)
+            # Fills unoccupied cells
+            if npos not in grid:
+                self.add(npos)
 
-                # Spends the opportunity to update whether the cell has a value of zero.
-                # Zeroness is tracked by bit #3
-                if self.mined(u, v):
-                    self.grid[x][y] |= 4
+            # Spends the opportunity to update whether this cell has a value of zero.
+            # Zeroness is tracked by bit #3
+            if self.mined(npos):
+                self.grid[pos] |= 4
 
 
 
         # Reveals neighbours if own value is zero, i.e. not third bit
-        if not self.nonzeroed(x, y):
-            for u in range(x - 1, x + 2):
-                for v in range(y - 1, y + 2):
+        if not self.nonzeroed(pos):
+            for u, v in adj:
 
-                    # No need to avoid adding own position because it will fail
-                    # the is revealed check.
-                    if not self.inrevealqueue(u, v):
+                npos = (u, v)
 
-                        # Places item in reveal queue
-                        self.grid[u][v] |= 8
-                        self.reveal_queue.add(u, v)
+                # Ensures the cell isn't already in the queue
+                if not self.inrevealqueue(npos):
 
-
+                    # Places item in reveal queue
+                    self.grid[npos] |= 8
+                    self.reveal_queue.append(npos)
 
 
-    # Checks whether given coordinates currently exist.
-    def inbounds(self, x: int, y: int) -> bool:
-        return x in self.grid and y in self.grid[x]
 
     # Methods to check cell state
-    def revealed(self, x: int, y: int) -> bool:
-        return self.grid[x][y] & 1 != 0
+    def revealed(self, pos: tuple[int]) -> bool:
+        return self.grid[pos] & 1 != 0
     
-    def mined(self, x: int, y: int) -> bool:
-        return self.grid[x][y] & 2 != 0
+    def mined(self, pos: tuple[int]) -> bool:
+        return self.grid[pos] & 2 != 0
     
-    def nonzeroed(self, x: int, y: int) -> bool:
-        return self.grid[x][y] & 4 != 0
+    def nonzeroed(self, pos: tuple[int]) -> bool:
+        return self.grid[pos] & 4 != 0
     
-    def inrevealqueue(self, x: int, y: int) -> bool:
-        return self.grid[x][y] & 8 != 0
-
-
-                    
-
-# A quick queue class.
-# Cells are added and revealed in a queue fashion, so FIFO.
-# This allows the revealed area to expand radially outward: BFS.
-class RevealQueue:
-    def __init__(self) -> None:
-        self.q = []
-
-    def __len__(self) -> int:
-        return len(self.q)
-
-    def add(self, x, y) -> None:
-
-        pos = [x, y]
-
-        if pos not in self.q:
-            self.q.append(pos)
-
-    def pop(self):
-        return self.q.pop(0)
+    def inrevealqueue(self, pos: tuple[int]) -> bool:
+        return self.grid[pos] & 8 != 0
