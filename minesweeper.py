@@ -109,7 +109,7 @@ class Minesweeper:
             # Spends the opportunity to update whether this cell has a value of zero.
             # Zeroness is tracked by bit #3
             if self.mined(npos):
-                self.grid[pos] |= 4
+                grid[pos] |= 4
 
 
 
@@ -123,7 +123,7 @@ class Minesweeper:
                 if not self.inrevealqueue(npos):
 
                     # Places item in reveal queue
-                    self.grid[npos] |= 8
+                    grid[npos] |= 8
                     self.reveal_queue.append(npos)
 
 
