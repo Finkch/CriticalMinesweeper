@@ -41,9 +41,12 @@ class CriticalDensity:
 
 
     # Finds the critical density by gradient descent (-ish)
-    def find(self) -> float:
+    def find(self, quiet = True) -> float:
         
         for experiment in range(self.experiments):
+
+            if not quiet:
+                print(f'Beginning experiment {experiment} of {self.experiments}:')
 
             # Creates a new experiment
             exp = Experiment(self.rho, self.cutoff, self.trials)
@@ -71,7 +74,17 @@ class CriticalDensity:
                 s = result['max'] / result['cutoff'] - 1
 
             # Updates density
-            self.rho += s * self.step
+            delta = s * self.step
+
+
+            # Prints experiment results
+            if not quiet:
+                print(f'.. Step percent:\t{abs(s):.4f}')
+                print(f'.. Current step:\t{self.step:.4f} -> {self.step * self.alpha:4f}')
+                print(f'.. Density:\t\t{self.rho:.4f} -> {self.rho + delta:.4f} ({delta:+.4f})')
+                print(exp)
+
+            self.rho += delta
 
             # Decreases step size exponentially
             self.step *= self.alpha
