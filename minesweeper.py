@@ -43,7 +43,8 @@ class Minesweeper:
     def go(self) -> None:
 
         # First reveal to populate the reveal queue
-        self.reveal(0, 0)
+        self.grid[0][0] |= 8
+        self.reveal_queue.add(0, 0)
 
         # Keeps revealing cells until either the cutoff is reached, or no cells left to reveal
         while len(self.reveal_queue) > 0 and self.reveals < self.cutoff:
@@ -84,30 +85,32 @@ class Minesweeper:
         self.reveals += 1
         
         # Creates new cells in unoccupied grid positions
-        for dx in range(-1, 2):
-            for dy in range(-1, 2):
-                if not (dx == 0 and dy == 0):
+        for u in range(x - 1, x + 2):
+            for v in range(y - 1, y + 2):
 
-                    # Fills unoccupied cells
-                    if not self.inbounds(x + dx, y + dy):
-                        self.add(x + dx, y + dy)
+                # Fills unoccupied cells
+                if not self.inbounds(u, v):
+                    self.add(u, v)
 
-                    # Spends the opportunity to update whether the cell has a value of zero.
-                    # Zeroness is tracked by bit #3
-                    if self.mined(x + dx, y + dy):
-                        self.grid[x][y] |= 4
+                # Spends the opportunity to update whether the cell has a value of zero.
+                # Zeroness is tracked by bit #3
+                if self.mined(u, v):
+                    self.grid[x][y] |= 4
 
 
 
         # Reveals neighbours if own value is zero, i.e. not third bit
         if not self.nonzeroed(x, y):
-            for dx in range(-1, 2):
-                for dy in range(-1, 2):
+            for u in range(x - 1, x + 2):
+                for v in range(y - 1, y + 2):
 
                     # No need to avoid adding own position because it will fail
                     # the is revealed check.
-                    if not self.revealed(x + dx, y + dy):
-                        self.reveal_queue.add(x + dx, y + dy)
+                    if not self.inrevealqueue(u, v):
+
+                        # Places item in reveal queue
+                        self.grid[u][v] |= 8
+                        self.reveal_queue.add(u, v)
 
 
 
@@ -125,11 +128,16 @@ class Minesweeper:
     
     def nonzeroed(self, x: int, y: int) -> bool:
         return self.grid[x][y] & 4 != 0
+    
+    def inrevealqueue(self, x: int, y: int) -> bool:
+        return self.grid[x][y] & 8 != 0
 
 
                     
 
-# A quick queue class
+# A quick queue class.
+# Cells are added and revealed in a queue fashion, so FIFO.
+# This allows the revealed area to expand radially outward: BFS.
 class RevealQueue:
     def __init__(self) -> None:
         self.q = []
