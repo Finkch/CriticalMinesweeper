@@ -1,13 +1,17 @@
 # Experiment is a series of trials at a given density
 
 from minesweeper import Minesweeper
+
 from math import ceil
 
+
 class Experiment:
-    def __init__(self, rho: float, cutoff: int, trials: int) -> None:
+    def __init__(self, rho: float, cutoff: int, trials: int, do_cutoff: bool = True) -> None:
         self.rho = rho
         self.cutoff = cutoff
         self.trials = trials
+
+        self.do_cutoff = do_cutoff
 
         self.results = []
 
@@ -34,7 +38,7 @@ class Experiment:
             self.results.append(board.reveals)
 
             # Stops the experiment if a board ever goes infinite
-            if board.reveals >= self.cutoff:
+            if board.reveals >= self.cutoff and self.do_cutoff:
                 break
 
             if not quiet and trial % 10 == 0:
