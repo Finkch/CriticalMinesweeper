@@ -31,9 +31,10 @@ from time import time
 def main():
 
     performance = True
+    quiet = False
     
     experiments = int(1e1)
-    trials = int(1e3)
+    trials = int(1e2)
     cutoff = 1e3
     alpha = 0.65
     step = 0.3
@@ -47,7 +48,9 @@ def main():
 
     finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, step, alpha)
 
-    print(finder.find(quiet = False))
+    rho_critical = finder.find(quiet)
+
+    print(f'Critical density:\n\trho_critical = {rho_critical}\n')
 
     print(finder.str_time())
 
