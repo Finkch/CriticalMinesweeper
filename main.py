@@ -23,7 +23,11 @@
 #       - Phase diagram cutoff vs. trials (CD finer)
 
 from critical import CriticalDensity
+from experiment import Experiment
 
+from time import time
+
+# Performs many experiment to find critical density
 def main():
     
     experiments = int(1e2)
@@ -37,5 +41,44 @@ def main():
 
     print(finder.find(False))
 
+# Performs an experiment to figure out its speed
+def performance():
+    
+    trials = int(1e3)
+    rho = 0.05      # Roughly rho_critical / 2. More or less guarantees infinite reveal
+    cutoff = 1e5
 
-main()
+    experiments = 10
+
+    results = []
+
+    for experiment in range(experiments):
+
+        print(f'Starting experiment {experiment + 1}...')
+
+        # Experiment setup
+        exp = Experiment(rho, cutoff, trials)
+
+        # Runs a trial
+        start = time()
+
+        exp.begin()
+
+        end = time()
+
+        # Experiment end
+        results.append(end - start)
+
+    results.sort()
+
+    print(f'\nExperiment concluded:')
+    print(f'.. Mean time:\t{sum(results) / len(results):.4f}s')
+    print(f'.. Median time:\t{results[len(results) // 2]:.4f}s')
+    print(f'.. Minimum time:\t{results[0]:.4f}s')
+    print(f'.. Maximum time:\t{results[-1]:.4f}s')
+
+
+
+
+#main()
+performance()
