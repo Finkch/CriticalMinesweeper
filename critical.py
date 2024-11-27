@@ -140,7 +140,7 @@ Performance data:
             # Returns whether the largest change is very small
             if maxdelta < self.finder_cutoff:
 
-                print(f'\nExiting finder; no significant change in rho_critical: ±{maxdelta:.3e}.\n')
+                print(f'\Critical density found; no significant change in delta: ±{maxdelta:.3e}.\n')
                 return True
             
             print(f'\nContinuing; sufficient change in delta: ±{maxdelta:.3e}.\n')
