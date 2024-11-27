@@ -32,7 +32,7 @@ class Experiment:
             board = Minesweeper(self.rho, self.cutoff)
 
             # Runs a trial
-            board.go()
+            board.sweep()
 
             # Appends the results
             self.results.append(board.reveals)
