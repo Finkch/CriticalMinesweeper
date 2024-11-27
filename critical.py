@@ -41,8 +41,8 @@ class CriticalDensity:
 
         # A list of experimental results
         self.results = []
-
         self.time_results = []
+        self.rhos = []
 
 
 
@@ -50,6 +50,11 @@ class CriticalDensity:
     def find(self, quiet = True) -> float:
         
         for experiment in range(self.experiments):
+
+            # Breaks if there is a negligible change
+            if self.deltas(experiment):
+                break
+
 
             if not quiet:
                 print(f'Beginning experiment {experiment} of {self.experiments}:')
@@ -65,6 +70,7 @@ class CriticalDensity:
             # Adds the experiment's results
             self.results.append(result)
             self.time_results.append(end - start)
+            self.rhos.append(self.rho)
 
 
             # Determines the step size
@@ -113,3 +119,21 @@ Performance data:
 .. Minimum time:\t{self.time_results[0]:.4f}s
 .. Maximum time:\t{self.time_results[-1]:.4f}s
 """
+
+    # Check if there has been minimal change over the past few trials
+    def deltas(self, experiment):
+
+        if experiment > 5:
+
+            # Gets the difference between the extremal elements
+            rhos = self.rhos[experiment - 5:]
+            maxdelta = max(rhos) - min(rhos)
+
+            # Returns whether the largest change is very small
+            if maxdelta < 1e-6:
+
+                print(f'\nExiting finder; no significant change in rho_critical: ±{maxdelta:.3e}.\n')
+                return True
+            
+            print(f'\nContinuing; sufficient change in delta: ±{maxdelta:.3e}.\n')
+            return False
