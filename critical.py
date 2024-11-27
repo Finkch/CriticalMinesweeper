@@ -5,7 +5,7 @@ from experiment import Experiment
 from time import time
 
 class CriticalDensity:
-    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, step: float, alpha: float) -> None:
+    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, step: float, alpha: float, lastn: int, finder_cutoff: float) -> None:
         
         # The number of experiments to run
         self.experiments = experiments
@@ -37,6 +37,14 @@ class CriticalDensity:
 
         # Alpha is a decay constant
         self.alpha = alpha
+
+
+
+        # When to stop the finder
+        self.finder_cutoff = finder_cutoff
+
+        # How many previous experiments to consider for the finder cutoff
+        self.lastn = lastn 
 
 
         # A list of experimental results
@@ -123,14 +131,14 @@ Performance data:
     # Check if there has been minimal change over the past few trials
     def deltas(self, experiment):
 
-        if experiment > 5:
+        if experiment > self.lastn:
 
             # Gets the difference between the extremal elements
-            rhos = self.rhos[experiment - 5:]
+            rhos = self.rhos[experiment - self.lastn:]
             maxdelta = max(rhos) - min(rhos)
 
             # Returns whether the largest change is very small
-            if maxdelta < 1e-6:
+            if maxdelta < self.finder_cutoff:
 
                 print(f'\nExiting finder; no significant change in rho_critical: ±{maxdelta:.3e}.\n')
                 return True
