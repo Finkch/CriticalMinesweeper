@@ -14,8 +14,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (200, 50, 50)
 BLUE = (50, 50, 200)
-GREY = (66, 66, 66)
-LGREY = (189, 189, 189)
+DGREY = (75, 75, 75)
+LGREY = (150, 150, 150)
 
 pygame.init()
 screen = pygame.display.set_mode((WS, WS))
@@ -37,7 +37,7 @@ def see(minesweeper, index):
 
     # Draw the grid
     for pos in grid:
-        draw(grid, pos, WHITE)
+        draw(grid, pos)
 
     # Draws the revealed cell
     draw(grid, cell, RED)
@@ -52,30 +52,26 @@ def see(minesweeper, index):
 
 
 # Draws a cell
-def draw(grid, pos, colour):
+def draw(grid, pos, colour = None):
     x, y = pos[0], pos[1]
 
     # Only draws if cell is on screen
     if not (x < -OOB or x > OOB or y < -OOB or y > OOB):
 
-        if grid[pos] & 2:
-            pygame.draw.rect(
-                screen,
-                GREY,
-                (x * CELL_SIZE + OOB * CELL_SIZE, y * CELL_SIZE + OOB * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            )
-        elif grid[pos] & 4:
-            pygame.draw.rect(
-                screen,
-                LGREY,
-                (x * CELL_SIZE + OOB * CELL_SIZE, y * CELL_SIZE + OOB * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            )
-        else:
-            pygame.draw.rect(
-                screen,
-                colour,
-                (x * CELL_SIZE + OOB * CELL_SIZE, y * CELL_SIZE + OOB * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            )
+        if not colour:
+            if grid[pos] & 4:
+                colour = LGREY
+            elif grid[pos] & 2:
+                colour = DGREY
+            else:
+                colour = WHITE
+
+
+        pygame.draw.rect(
+            screen,
+            colour,
+            (x * CELL_SIZE + OOB * CELL_SIZE, y * CELL_SIZE + OOB * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+        )
         
         # Draws a border around the cell
         pygame.draw.rect(
