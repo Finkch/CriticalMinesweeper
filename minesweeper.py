@@ -7,12 +7,12 @@
 #   8 = item has been placed in the reveal queue
 
 from random import random
-
+from copy import deepcopy
 
 # rho is the density of mines, aka p(mine).
 # cutoff is the number of reveals before we say "yup, that's an infinite reveal".
 class Minesweeper:
-    def __init__(self, rho: float, cutoff: int) -> None:
+    def __init__(self, rho: float, cutoff: int, visualise: bool = False) -> None:
         
         # the number of reveals
         self.reveals: int = 0
@@ -30,6 +30,12 @@ class Minesweeper:
 
         # When a reveal is considered infinite
         self.cutoff: int = cutoff
+
+        # Whether to save info for later visualisation
+        self.visualise = visualise
+        self.grids = []
+        self.cells = []
+        self.torqs = []
 
         # Starting cell.
         self.rq.append((0, 0))
@@ -56,22 +62,22 @@ class Minesweeper:
         cutoff = int(self.cutoff)
         rho = self.rho
         reveals = self.reveals
+        visualise = self.visualise
 
         # Since we're calling this method a tone, faster to make it local
         reveal = self.reveal
 
         # Keeps revealing cells until either the cutoff is reached, or no cells left to reveal
         while reveals < len(rq) and reveals < cutoff:
-            reveal(rq[reveals], grid, rq, rho)
+            reveal(rq[reveals], grid, rq, rho, visualise)
             reveals += 1
 
         # Updates value
         self.reveals = reveals
     
 
-
-    # Reveals a grid cell, potentially expanding out to its neighbours
-    def reveal(self, pos: tuple[int], grid: dict[tuple[int]], rq: list[tuple[int]], rho: float) -> None:
+    # Performs a "single" reveal
+    def reveal(self, pos: tuple[int], grid: dict[tuple[int]], rq: list[tuple[int]], rho: float, visualise: bool) -> None:
 
         # I will likely remove this check once everything is working.
         # This check decreases performance! But only by a hair
@@ -84,8 +90,6 @@ class Minesweeper:
         # Reaveals the cell
         grid[pos] |= 1
 
-        # To place in reveal queue
-        torq = []
         
         # Creates new cells in unoccupied grid positions
         for dx in (-1, 0, 1):
@@ -98,29 +102,33 @@ class Minesweeper:
                 if npos not in grid:
 
                     # 2 means there a mine, 8 is that it's in the to reveal queue
-                    grid[npos] = 2 if random() < rho else 8
+                    grid[npos] = 2 if random() < rho else 0
 
-                    # Adds the new cell to the list of to reveal
-                    torq.append(npos)
 
-                    # Spends the opportunity to update whether this cell has a value of zero.
-                    # Zeroness is tracked by bit #3
-                    if not grid[pos] & 4 and grid[npos] & 2:
-                        grid[pos] |= 4
+                # Updates newly revealed cell for is nonzero
+                if grid[npos] & 2:
+                    grid[pos] |= 4
         
 
-        # Undoes placing items into torq.
-        # Near the critical density, we won't need to do this extra work
-        # for most reveals, so it turns out to be more efficient in the cases
-        # that matter the most.
-        if grid[pos] & 4:
-            for npos in torq:
-                grid[npos] &= 7
-        
-        # No need to undo work in this case
-        else:
-            for npos in torq:
-                rq.append(npos)
+        # Reveals adjacent cells, if self is zero
+        if not grid[pos] & 4:        
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+
+                    # Gets the new position
+                    npos = (x + dx, y + dy)
+
+                    # Neither revealed nor in reveal queue
+                    if not grid[npos] & 9:
+                        rq.append(npos)
+                        grid[npos] |= 8
+
+        # Save data for visualisation later
+        if visualise:
+            self.grids.append(deepcopy(grid))
+            self.cells.append(pos)
+            #self.torqs.append(torq if not grid[pos] & 4 else [])
+
 
 
 # Following is a list of performance data and the changes relative to old or current.
@@ -325,3 +333,31 @@ class Minesweeper:
 #   .. Median time:         3.7138s
 #   .. Minimum time:        3.7041s
 #   .. Maximum time:        3.8752s
+#
+# One more control.
+# Unforunately, I'll have to lose this time because I realised a flaw in this optimisation:
+# Checking for non-zero cannot be done only when adding new neighbours, each revealed cell
+# has to check for to reveal...
+# Imagine two adjacent cells, A and B, where A is adjacent to a mine but not B. A is revealed 
+# first and adds neighbours, all to flag 0 meaning not in reveal queue. Then B is revealed but even
+# though it is zero value (not flag 4), its neighbours already exist so it cannot add them to torq.
+# .. Mean time:           3.6998s
+# .. Median time:         3.6935s
+# .. Minimum time:        3.6896s
+# .. Maximum time:        3.7275s
+#
+# Old reveal scheme (no temp to-reveal queue)
+# .. Mean time:           5.8034s
+# .. Median time:         5.8017s
+# .. Minimum time:        5.7962s
+# .. Maximum time:        5.8197s
+#
+# New reveal strategy patch
+#   BAD
+#
+# Old reveal (now current) with visualise to false
+# .. Mean time:           5.9161s
+# .. Median time:         5.9258s
+# .. Minimum time:        5.8797s
+# .. Maximum time:        5.9788s
+
