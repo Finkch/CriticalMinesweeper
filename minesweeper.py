@@ -6,8 +6,9 @@
 #   4 = at least one adjacent mine
 #   8 = item has been placed in the reveal queue
 
-from random import random
+from random import random, seed
 from copy import deepcopy
+from time import time
 
 # rho is the density of mines, aka p(mine).
 # cutoff is the number of reveals before we say "yup, that's an infinite reveal".
@@ -36,6 +37,11 @@ class Minesweeper:
         self.grids = []
         self.cells = []
         self.torqs = []
+
+        # Sets random seed
+        self.seed = time()
+        seed(self.seed)
+
 
         # Starting cell.
         self.rq.append((0, 0))
