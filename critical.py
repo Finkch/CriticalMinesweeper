@@ -5,7 +5,7 @@ from experiment import Experiment
 from time import time
 
 class CriticalDensity:
-    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, step: float, alpha: float, lastn: int, finder_cutoff: float) -> None:
+    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, step: float, alpha: float, lastn: int, finder_cutoff: float, compress: bool = True) -> None:
         
         # The number of experiments to run
         self.experiments = experiments
@@ -52,6 +52,11 @@ class CriticalDensity:
         self.time_results = []
         self.rhos = []
 
+        # A list of count of reveals for each experiment.
+        # Only tracked if compress is false
+        self.compress = compress
+        self.results_full = []
+
 
 
     # Finds the critical density by gradient descent (-ish)
@@ -79,6 +84,10 @@ class CriticalDensity:
             self.results.append(result)
             self.time_results.append(end - start)
             self.rhos.append(self.rho)
+
+            # If we don't care about memory, tracks the reveals in each trial in each experiment
+            if not self.compress:
+                self.results_full.append(exp.results)
 
 
             # Determines the step size
