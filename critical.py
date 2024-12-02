@@ -122,6 +122,7 @@ class CriticalDensity:
     def str_time(self):
         return f"""
 Performance data:
+.. Total time:\t\t{sum(self.time_results):.4f}s
 .. Mean time:\t\t{sum(self.time_results) / len(self.time_results):.4f}s
 .. Median time:\t\t{self.time_results[len(self.time_results) // 2]:.4f}s
 .. Minimum time:\t{self.time_results[0]:.4f}s
