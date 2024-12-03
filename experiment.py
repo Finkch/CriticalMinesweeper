@@ -69,23 +69,26 @@ class Experiment:
         results['median']   = self.results[len(self.results) // 2]
         results['min']      = self.results[0]
         results['max']      = self.results[-1]
-
-        results['str'] = str(self)
+        results['infinites']= sum([1 for result in self.results if result == self.cutoff])
 
         return results
 
 
     def __str__(self) -> str:
 
-        s = 'Experiment results: valid density.\n' if len(self.results) == self.trials else 'Experiment results: INFINTIE.\n'
+        # Grabs the data
+        results = self.process()
 
-        s += f'.. Trials:\t\t{len(self.results)}\n'
-        s += f'.. Density:\t\t{self.rho}\n'
-        s += f'.. Cutoff:\t\t{self.cutoff}\n'
-        s += f'.. Average reveals:\t{sum(self.results) / len(self.results)}\n'
-        s += f'.. Median reveals: \t{self.results[len(self.results) // 2]}\n'
-        s += f'.. Minimum reveals:\t{self.results[0]}\n'
-        s += f'.. Maximum reveals:\t{self.results[-1]}\n'
+        s = 'Experiment results: valid density.\n' if not results['infinite'] else 'Experiment results: INFINTIE.\n'
+
+        s += f'.. Trials:\t\t{results["trials"]} of {results["goal"]}\n'
+        s += f'.. Density:\t\t{results["rho"]}\n'
+        s += f'.. Cutoff:\t\t{results["cutoff"]}\n'
+        s += f'.. Average reveals:\t{results["mean"]}\t({results["mean"] / results["cutoff"] * 100:.2f}%)\n'
+        s += f'.. Median reveals: \t{results["median"]}\t({results["median"] / results["cutoff"] * 100:.2f}%)\n'
+        s += f'.. Count of infinities:\t{results["infinites"]}\t({results["infinites"] / results["trials"] * 100:.2f}%)\n'
+        s += f'.. Minimum reveals:\t{results["min"]}\n'
+        s += f'.. Maximum reveals:\t{results["max"]}\n'
 
         return s
 
