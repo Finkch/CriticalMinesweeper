@@ -17,11 +17,15 @@ BLUE = (50, 50, 200)
 DGREY = (75, 75, 75)
 LGREY = (150, 150, 150)
 
-pygame.init()
-screen = pygame.display.set_mode((WS, WS))
-pygame.display.set_caption("Critical Minesweeper")
+screen = None
+font = None
 
-font = pygame.font.Font(None, 18)  # None for default font, 36 for size
+def pygame_init():
+    pygame.init()
+    screen = pygame.display.set_mode((WS, WS))
+    pygame.display.set_caption("Critical Minesweeper")
+
+    font = pygame.font.Font(None, 18)  # None for default font, 36 for size
 
 
 def see(minesweeper, index):
