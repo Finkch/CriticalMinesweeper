@@ -65,7 +65,7 @@ class CriticalDensity:
         for experiment in range(self.experiments):
 
             # Breaks if there is a negligible change
-            if self.deltas(experiment):
+            if self.lastn > 0 and self.deltas(experiment):
                 break
 
 
