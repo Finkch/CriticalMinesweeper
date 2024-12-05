@@ -24,5 +24,57 @@ def log(dir: str, file: str, results: list | dict) -> None:
     else:
         assert False, f'unknow results type "{type(results)}"'
 
-    def unlog(path):
-        pass
+# Unlogs an experiment or CD Finder
+def unlog(path: str):
+
+    results = {}
+
+    # Obtains all results from given run
+    for file in os.listdir(path):
+
+        # Creates data appropriately
+        match file:
+
+            # Experiment results
+            case 'fulle.csv':
+                with open(f'{path}/{file}') as f:
+                    results['fulle'] = [int(line) for line in f]
+
+
+            case 'compressede.csv':
+                results['compressede'] = {}
+                
+                with open(f'{path}/{file}') as f:
+                    for line in f:
+                        kv = line.split(':')
+                        results['compressede'][kv[0]] = kv[1].strip()
+            
+
+
+            # CD Finder results
+            case 'fullc.csv':
+                results['fullc'] = []
+                with open(f'{path}/{file}') as f:
+                    for line in f:
+                        splits = line.split(',')
+                        results['fullc'].append([int(split) for split in splits])
+
+            case 'compressedc.csv':
+                results['compressedc'] = []
+                with open(f'{path}/{file}') as f:
+                    for line in f:
+                        results['compressedc'].append({})
+                        splits = line.split(',')
+                        for split in splits:
+                            kv = split.split(':')
+                            results['compressedc'][-1][kv[0]] = kv[1].strip()
+            
+            case 'rhos.csv':
+                with open(f'{path}/{file}') as f:
+                    results['rhosc'] = [float(line) for line in f]
+
+            case 'timesc.csv':
+                with open(f'{path}/{file}') as f:
+                    results['timesc'] = [float(line) for line in f]
+
+    return results
