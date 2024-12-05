@@ -10,7 +10,7 @@ def log(dir: str, file: str, results: list | dict) -> None:
     
     # Ensures the logdir exists
     if not os.path.exists(f'Results/{dir}'):
-        os.makedirs(dir)
+        os.makedirs(f'Results/{dir}')
 
     # Writes uncompressed results
     if isinstance(results, list):
@@ -23,3 +23,6 @@ def log(dir: str, file: str, results: list | dict) -> None:
             writer.writerows(([f'{k}:{v}'] for k, v in results.items()))
     else:
         assert False, f'unknow results type "{type(results)}"'
+
+    def unlog(path):
+        pass
