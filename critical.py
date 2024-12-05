@@ -131,10 +131,10 @@ class CriticalDensity:
         self.time_results.sort()
 
         if self.logdir:
-            log(self.logdir, 'compressed', self.results)
-            log(self.logdir, 'times', self.time_results)
-            log(self.logdir, 'rhos', self.rhos)
-            log(self.logdir, 'full', self.results_full)
+            log(self.logdir, 'compressedc', self.results)
+            log(self.logdir, 'timesc', self.time_results)
+            log(self.logdir, 'rhosc', self.rhos)
+            log(self.logdir, 'fullc', self.results_full)
 
         # The equilibrium value
         return self.rho

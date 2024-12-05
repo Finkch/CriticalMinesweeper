@@ -77,8 +77,8 @@ class Experiment:
 
         # Logs the experiment
         if self.logdir:
-            log(self.logdir, 'full', self.results)
-            log(self.logdir, 'compressed', results)
+            log(self.logdir, 'fulle', self.results)
+            log(self.logdir, 'compressede', results)
 
         return results
 
