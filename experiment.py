@@ -41,7 +41,7 @@ class Experiment:
             if board.reveals >= self.cutoff and self.do_cutoff:
                 break
 
-            if not quiet and trial % 10 == 0:
+            if not quiet and trial % (self.trials // 10) == 0:
                 print(f'{ceil(trial / self.trials * 100)}%')
 
 
