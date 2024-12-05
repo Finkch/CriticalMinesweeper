@@ -7,7 +7,16 @@
 #       Wow...that was a bad joke.
 #
 # First real simulation has finished!
-#   rho_critical ~= 0.1022 mines/cell
+#   Experiments = 1e2
+#   Trials      = 1e3
+#   Cutoff      = 1e5
+#       rho_critical ~= 0.1022 mines/cell
+#
+# First _real_ simulation has finished! (13+ hours)
+#   Experiments = 1e2 (completed in 32)
+#   Trials      = 1e4
+#   Cutoff      = 1e6
+#       rho_critical ~= 0.09929314020180824 mines/cell
 
 # Todo:
 #   * Get trials to cutoff early if they are very confident they are not infinite
@@ -19,6 +28,7 @@
 #   x   * Add another bit (or repurpose 1) to code if cell in in RQ to avoid lengthy 'in' check
 #   * Write key results to file 
 #   * Make graphs of reveals vs. density
+#           + Separate execution path for single experiment at high trial count (for certain plots)
 #       - Reveals vs. density (trial)
 #       - Mean/median reveals vs. density (experiment)
 #       - Max reveals vs. density (experiment)
@@ -40,26 +50,51 @@
 # This is another reason why we use BFS instead of DFS since DFS would reveal cells that maybe shouldn't be
 # revealed.
 
+# An interesting observation on the shape of the histogram:
+# On logarithmic bins, the histogram follows a roughly normal distribution (albeit right skewed). At high densities,
+# the histogram's median is centred on the range belowed the cutoff. However, at low densities it appears to be exponential growth.
+# The thing is, how can you tell the difference between the left tail of a normal distribution and the left tail of exponential growth?
+#
+# Perhaps the approach is to check the derivative on the non-log histogram to see if it appears to converge?
+#
+# Hm, no no. Think about the non-x-log plot. There, at low densities, it would appear as if its exponentially decreasing. However, below the critical
+# density, the curve would flip outward over flat to right-skewed, causing the cluster to go from zero to "infinity". What that would look like is
+# all values concentrated at the cutoff, save for a few _very_ close to the minimum possible reveals (9).
+# The x-log plot may be even more interesting! Yes, it is _very_ close to (log-)linear! I think finding the absolute, smallest, negative slope (as close
+# to zero as possible) is a good way of finding the "true" rho_critical.
+# Wait! On further testing, it does not appear to be log-linear. After taking the log, it still appears to be
+# a decay function...so then what function fits?
+
 from critical import CriticalDensity
-from visualise import visualise
+from experiment import Experiment
 from minesweeper import Minesweeper
 
-# Performs many experiment to find critical density
+from visualise import visualise, pygame_init
+
+import graph
+
+from time import time
+
+# Execution path to hone in on a value for rho_critical
 def main():
 
     performance = False
     quiet = False
     
-    experiments = int(1e2)
-    trials = int(1e4)
-    cutoff = 1e6
+    experiments = int(1e1)
+    trials = int(1e2)
+    cutoff = 1e5
     alpha = 0.65
-    step = 0.3
-    rho = 3 / 5
-    do_cutoff = True
+    #step = 0.3
+    step = 0
+    #rho = 3 / 5
+    rho = 0.1
+    #do_cutoff = True
+    do_cutoff = False
 
     finder_cutoff = 1e-6
     lastn = 5
+    lastn = 0
 
     if performance:
         experiments = 10
@@ -68,7 +103,7 @@ def main():
         cutoff = 1e4
         do_cutoff = False
 
-    finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, step, alpha, lastn, finder_cutoff)
+    finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, step, alpha, lastn, finder_cutoff, compress = False)
 
     rho_critical = finder.find(quiet)
 
@@ -76,6 +111,10 @@ def main():
 
     print(f'Critical density:\n\trho_critical = {rho_critical}\n')
 
+    graph.histogram(finder)
+
+
+# Execution path to visualise a given trial
 def see_ms():
 
     rho = 0.1
@@ -84,8 +123,33 @@ def see_ms():
     ms = Minesweeper(rho, cutoff, True)
     ms.sweep()
 
+    pygame_init()
     visualise(ms)
 
+# Execution path to run an experiment and see the results
+def plot():
+    
+    trials = int(1e4)
+    cutoff = int(1e5)
 
-main()
+    rho = 0.1
+
+    do_cutoff = False
+
+    exp = Experiment(rho, cutoff, trials, do_cutoff)
+
+    # Runs the experiment
+    start = time()
+    exp.begin(quiet = False)
+    end = time()
+
+    print(exp, end='')
+    print(f'.. Time taken:\t\t{end - start:.4f}s')
+
+    graph.histogram(exp)
+
+
+
+#main()
 #see_ms()
+plot()
