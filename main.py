@@ -17,6 +17,10 @@
 #   Trials      = 1e4
 #   Cutoff      = 1e6
 #       rho_critical ~= 0.09929314020180824 mines/cell
+#
+# I reckon as cutoff -> inf, rho_critical -> decreases to true value at exponential decay.
+# As such, rho_c ~= 0.099 is likely very close to the true value.
+# Similarly, trials -> inf, rho_critical -> increases.
 
 # Todo:
 #   * Get trials to cutoff early if they are very confident they are not infinite
@@ -72,18 +76,19 @@ from minesweeper import Minesweeper
 from visualise import visualise, pygame_init
 
 import graph
+from logger import unlog
 
 from time import time
 
 # Execution path to hone in on a value for rho_critical
-def main():
+def CDFinder():
 
     performance = False
     quiet = False
     
     experiments = int(1e1)
     trials = int(1e2)
-    cutoff = 1e5
+    cutoff = 1e4
     alpha = 0.65
     #step = 0.3
     step = 0
@@ -103,7 +108,7 @@ def main():
         cutoff = 1e4
         do_cutoff = False
 
-    finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, step, alpha, lastn, finder_cutoff, compress = False)
+    finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, step, alpha, lastn, finder_cutoff, compress = False, logdir = 'smallexp')
 
     rho_critical = finder.find(quiet)
 
@@ -111,7 +116,25 @@ def main():
 
     print(f'Critical density:\n\trho_critical = {rho_critical}\n')
 
-    graph.histogram(finder)
+
+# Execution path to perform a single experiment
+def experiment():
+
+    rho = 0.1
+    cutoff = int(1e4)
+    trials = int(1e2)
+
+    logdir = 'rho0-1'
+
+    exp = Experiment(rho, cutoff, trials, do_cutoff = False, logdir = logdir)
+
+    start = time()
+    exp.begin(quiet = False)
+    end = time()
+
+    print(exp)
+    print(f'.. Time taken:\t\t{end - start:.4f}s')
+
 
 
 # Execution path to visualise a given trial
@@ -129,27 +152,18 @@ def see_ms():
 # Execution path to run an experiment and see the results
 def plot():
     
-    trials = int(1e4)
-    cutoff = int(1e5)
+    dir = 'rho0-1'
 
-    rho = 0.1
+    # Obtains the results from file
+    results = unlog(f'Results/{dir}')
 
-    do_cutoff = False
+    print(results)
 
-    exp = Experiment(rho, cutoff, trials, do_cutoff)
-
-    # Runs the experiment
-    start = time()
-    exp.begin(quiet = False)
-    end = time()
-
-    print(exp, end='')
-    print(f'.. Time taken:\t\t{end - start:.4f}s')
-
-    graph.histogram(exp)
+    graph.histogram(results)
 
 
 
-#main()
+#CDFinder()
+#experiment()
 #see_ms()
 plot()
