@@ -9,7 +9,7 @@ import csv
 def log(dir: str, file: str, results: list) -> None:
     
     # Ensures the logdir exists
-    if not os.path.exists(dir):
+    if not os.path.exists(f'Results/{dir}'):
         os.makedirs(dir)
 
     
