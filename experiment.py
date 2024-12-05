@@ -4,14 +4,18 @@ from minesweeper import Minesweeper
 
 from math import ceil
 
+from logger import log
+
 
 class Experiment:
-    def __init__(self, rho: float, cutoff: int, trials: int, do_cutoff: bool = True) -> None:
+    def __init__(self, rho: float, cutoff: int, trials: int, do_cutoff: bool = True, logdir: str = None) -> None:
         self.rho = rho
         self.cutoff = cutoff
         self.trials = trials
 
         self.do_cutoff = do_cutoff
+
+        self.logdir = logdir
 
         self.results = []
 
@@ -70,6 +74,11 @@ class Experiment:
         results['min']      = self.results[0]
         results['max']      = self.results[-1]
         results['infinites']= sum([1 for result in self.results if result == self.cutoff])
+
+        # Logs the experiment
+        if self.logdir:
+            log(self.logdir, 'full', self.results)
+            log(self.logdir, 'compressed', results)
 
         return results
 

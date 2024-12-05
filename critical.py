@@ -4,8 +4,10 @@ from experiment import Experiment
 
 from time import time
 
+from logger import log
+
 class CriticalDensity:
-    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, step: float, alpha: float, lastn: int, finder_cutoff: float, compress: bool = True) -> None:
+    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, step: float, alpha: float, lastn: int, finder_cutoff: float, compress: bool = True, logdir: str = None) -> None:
         
         # The number of experiments to run
         self.experiments = experiments
@@ -56,6 +58,10 @@ class CriticalDensity:
         # Only tracked if compress is false
         self.compress = compress
         self.results_full = []
+
+        # Where to log.
+        # If None, then don't log
+        self.logdir = logdir
 
 
 
@@ -123,6 +129,12 @@ class CriticalDensity:
             self.step *= self.alpha
 
         self.time_results.sort()
+
+        if self.logdir:
+            log(self.logdir, 'compressed', self.results)
+            log(self.logdir, 'times', self.time_results)
+            log(self.logdir, 'rhos', self.rhos)
+            log(self.logdir, 'full', self.results_full)
 
         # The equilibrium value
         return self.rho
