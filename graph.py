@@ -7,16 +7,19 @@ from math import ceil
 
 # Plots a histogram of all trials.
 # Only really makes sense is rho_critical is constant over experiments
-def histogram(experiment: Experiment):
+def histogram(exp_results: dict):
 
-    results = experiment.results
+    results = exp_results['fulle']
+    params  = exp_results['compressede']
+
+    cutoff = int(params['cutoff'])
 
     # Sorts the data into bins
     n_bins = 20
     bins = [1] * (n_bins + 1) # Start at 1 in each bin so taking the log doesn't freak out later
 
     # Gets the cutoff value and uses that to determine bin size
-    bin_size = ceil(experiment.cutoff / n_bins)
+    bin_size = ceil(cutoff / n_bins)
 
     # Places data into bins
     for result in results:
@@ -47,7 +50,7 @@ def histogram(experiment: Experiment):
     uncs = np.sqrt(np.diag(cov))
 
     # Creates a line for the data
-    linx = np.arange(0, experiment.cutoff, n_bins)
+    linx = np.arange(0, cutoff, n_bins)
     liny = [linear(x, fits[0], fits[1]) for x in linx]
 
     # Adds the best fit line to the plot
