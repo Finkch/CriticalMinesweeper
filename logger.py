@@ -6,7 +6,7 @@ import os
 import csv
 
 # Logs data from an experiment
-def log(dir: str, file: str, results: list) -> None:
+def log(dir: str, file: str, results: list | dict) -> None:
     
     # Ensures the logdir exists
     if not os.path.exists(f'Results/{dir}'):
