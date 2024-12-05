@@ -12,8 +12,14 @@ def log(dir: str, file: str, results: list) -> None:
     if not os.path.exists(f'Results/{dir}'):
         os.makedirs(dir)
 
-    
     # Writes uncompressed results
-    with open(f'Results/{dir}/{file}.csv', 'w', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-        writer.writerows(([result] for result in results))
+    if isinstance(results, list):
+        with open(f'Results/{dir}/{file}.csv', 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerows(([result] for result in results))
+    elif isinstance(results, dict):
+        with open(f'Results/{dir}/{file}.csv', 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerows(([f'{k}:{v}'] for k, v in results.items()))
+    else:
+        assert False, f'unknow results type "{type(results)}"'
