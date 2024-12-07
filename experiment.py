@@ -8,10 +8,11 @@ from logger import log
 
 
 class Experiment:
-    def __init__(self, rho: float, cutoff: int, trials: int, do_cutoff: bool = True, logdir: str = None) -> None:
+    def __init__(self, rho: float, cutoff: int, trials: int, do_cutoff: bool = True, r: int = 1, logdir: str = None) -> None:
         self.rho = rho
         self.cutoff = cutoff
         self.trials = trials
+        self.r = r
 
         self.do_cutoff = do_cutoff
 
@@ -33,7 +34,7 @@ class Experiment:
         for trial in range(self.trials):
 
             # Creates new board
-            board = Minesweeper(self.rho, self.cutoff)
+            board = Minesweeper(self.rho, self.cutoff, self.r)
 
             # Runs a trial
             board.sweep()

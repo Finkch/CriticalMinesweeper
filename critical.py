@@ -7,13 +7,16 @@ from time import time
 from logger import log
 
 class CriticalDensity:
-    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, step: float, alpha: float, lastn: int, finder_cutoff: float, compress: bool = True, logdir: str = None) -> None:
+    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, r: int, step: float, alpha: float, lastn: int, finder_cutoff: float, compress: bool = True, logdir: str = None) -> None:
         
         # The number of experiments to run
         self.experiments = experiments
 
         # The number of trials per experiment
         self.trials = trials
+
+        # Initial safe zone
+        self.r = r
 
         # Whether to end trials early
         self.do_cutoff = do_cutoff
@@ -79,7 +82,7 @@ class CriticalDensity:
                 print(f'Beginning experiment {experiment} of {self.experiments}:')
 
             # Creates a new experiment
-            exp = Experiment(self.rho, self.cutoff, self.trials, self.do_cutoff)
+            exp = Experiment(self.rho, self.cutoff, self.trials, self.do_cutoff, self.r)
 
             # Runs the experiment
             start = time()
