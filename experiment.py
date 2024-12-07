@@ -101,3 +101,19 @@ class Experiment:
 
         return s
 
+
+# Used to reformat experimental results into a string
+def etostr(results):
+
+    s = 'Experiment results: valid density.\n' if not bool(results['infinite']) else 'Experiment results: INFINTIE.\n'
+
+    s += f'.. Trials:\t\t{results["trials"]} of {results["goal"]}\n'
+    s += f'.. Density:\t\t{results["rho"]}\n'
+    s += f'.. Cutoff:\t\t{results["cutoff"]}\n'
+    s += f'.. Average reveals:\t{results["mean"]}\t({float(results["mean"]) / float(results["cutoff"]) * 100:.2f}%)\n'
+    s += f'.. Median reveals: \t{results["median"]}\t({float(results["median"]) / float(results["cutoff"]) * 100:.2f}%)\n'
+    s += f'.. Count of infinities:\t{results["infinites"]}\t({float(results["infinites"]) / float(results["trials"]) * 100:.2f}%)\n'
+    s += f'.. Minimum reveals:\t{results["min"]}\n'
+    s += f'.. Maximum reveals:\t{results["max"]}\n'
+
+    return s
