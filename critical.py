@@ -79,7 +79,7 @@ class CriticalDensity:
 
 
             if not quiet:
-                print(f'Beginning experiment {experiment} of {self.experiments}:')
+                print(f'Beginning experiment {experiment + 1} of {self.experiments}:')
 
             # Creates a new experiment
             exp = Experiment(self.rho, self.cutoff, self.trials, self.do_cutoff, self.r)
