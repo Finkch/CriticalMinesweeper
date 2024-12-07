@@ -12,8 +12,10 @@ from time import time
 
 # rho is the density of mines, aka p(mine).
 # cutoff is the number of reveals before we say "yup, that's an infinite reveal".
+# Visualise pushes each step into a queue so we can go over the reveal stepwise later.
+# r is the initial safezone radius; 0 -> classic start, 1 -> modern start.
 class Minesweeper:
-    def __init__(self, rho: float, cutoff: int, visualise: bool = False) -> None:
+    def __init__(self, rho: float, cutoff: int, r: int = 1, visualise: bool = False) -> None:
         
         # the number of reveals
         self.reveals: int = 0
@@ -46,9 +48,9 @@ class Minesweeper:
         # Starting cell.
         self.rq.append((0, 0))
 
-        # Creates it's neighbours to guarantee non-zero reveal
-        for dx in (-1, 0, 1):
-            for dy in (-1, 0, 1):
+        # Creates the starting no-mine zone
+        for dx in range(-r, r + 1):
+            for dy in range(-r, r + 1):
 
                 # Adds the item to the reveal queue.
                 # Not b(0, 0) because we want that to be revealed first
