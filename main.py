@@ -30,7 +30,7 @@
 #   * Think about deltas in experiment: don't cutoff early when infinite, rather delta proportional to #infinite?
 #   * When hitting infinite, step does not decrease?
 #   x   * Add another bit (or repurpose 1) to code if cell in in RQ to avoid lengthy 'in' check
-#   * Write key results to file 
+#   x   * Write key results to file 
 #   * Make graphs of reveals vs. density
 #           + Separate execution path for single experiment at high trial count (for certain plots)
 #       - Reveals vs. density (trial)
@@ -68,9 +68,11 @@
 # to zero as possible) is a good way of finding the "true" rho_critical.
 # Wait! On further testing, it does not appear to be log-linear. After taking the log, it still appears to be
 # a decay function...so then what function fits?
+# Well...linear fit has errors smaller than 5%, so it's linear with 95% confidence? At the very least,
+# the exponential decay is _very_ close to being exact.
 
 from critical import CriticalDensity
-from experiment import Experiment
+from experiment import Experiment, etostr
 from minesweeper import Minesweeper
 
 from visualise import visualise, pygame_init
@@ -79,27 +81,29 @@ import graph
 from logger import unlog
 
 from time import time
+from math import floor, log10
 
 # Execution path to hone in on a value for rho_critical
 def CDFinder():
 
     performance = False
-    quiet = False
+    quiet = True
     
-    experiments = int(1e1)
-    trials = int(1e2)
-    cutoff = 1e4
+    experiments = int(1e2)
+    trials = int(1e3)
+    cutoff = 1e6
     alpha = 0.65
-    #step = 0.3
-    step = 0
-    #rho = 3 / 5
-    rho = 0.1
-    #do_cutoff = True
-    do_cutoff = False
+    step = 0.3
+    rho = 2 / 5
+    do_cutoff = True
+    #do_cutoff = False
+    r = 1
 
-    finder_cutoff = 1e-6
+    finder_cutoff = 1e-5
     lastn = 5
     lastn = 0
+
+    logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
 
     if performance:
         experiments = 10
@@ -108,25 +112,44 @@ def CDFinder():
         cutoff = 1e4
         do_cutoff = False
 
-    finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, step, alpha, lastn, finder_cutoff, compress = False, logdir = 'smallexp')
 
-    rho_critical = finder.find(quiet)
+    for i in range(10):
 
-    print(finder.str_time())
+        r = i
+        logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
 
-    print(f'Critical density:\n\trho_critical = {rho_critical}\n')
+        finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, r, step, alpha, lastn, finder_cutoff, compress = False, logdir = logdir)
+
+        rho_critical = finder.find(quiet)
+
+        print(finder.str_time())
+
+        print(f'Critical density:\n\trho_critical = {rho_critical}\n')
 
 
 # Execution path to perform a single experiment
 def experiment():
 
+    performance = False
+
     rho = 0.1
-    cutoff = int(1e4)
-    trials = int(1e2)
+    trials = int(1e4)
+    cutoff = int(1e7)
+    do_cutoff = False
+    r = 10
 
-    logdir = 'rho0-1'
+    logdir = f'{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
 
-    exp = Experiment(rho, cutoff, trials, do_cutoff = False, logdir = logdir)
+
+    if performance:
+        trials = 100
+        rho = 0.05
+        cutoff = 1e4
+        do_cutoff = False
+        logdir = None
+
+
+    exp = Experiment(rho, cutoff, trials, do_cutoff, r, logdir = logdir)
 
     start = time()
     exp.begin(quiet = False)
@@ -152,18 +175,23 @@ def see_ms():
 # Execution path to run an experiment and see the results
 def plot():
     
-    dir = 'rho0-1'
+    dir = '5x7rho0-1'
 
     # Obtains the results from file
     results = unlog(f'Results/{dir}')
 
-    print(results)
+    # Performs a printout of the parameters
+    if 'compressede' in results:
+        print(etostr(results['compressede']))
+    elif 'compressedc' in results:  # Prints first and last
+        print(etostr(results['compressedc'][0]))
+        print(etostr(results['compressedc'][-1]))
 
     graph.histogram(results)
 
 
 
-#CDFinder()
+CDFinder()
 #experiment()
 #see_ms()
-plot()
+#plot()
