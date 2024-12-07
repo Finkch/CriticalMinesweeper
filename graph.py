@@ -47,7 +47,7 @@ def histogram(exp_results: dict):
 
 
     # Logs the plot
-    bins = np.log(bins)
+    binsl = np.log(bins)
 
 
 
@@ -55,7 +55,7 @@ def histogram(exp_results: dict):
     # Uses bar rather than hist so we can take log for linear fit
     axes[1].bar(
         binx, # Histogram bin positions
-        bins,
+        binsl,
         bin_size * 0.9
     )
     axes[1].set_title(f'Log-linear histogram of reveals (rho = {params["rho"]})')
@@ -65,7 +65,7 @@ def histogram(exp_results: dict):
     guess = (
         -1, bins[0]
     )
-    fits, cov = curve_fit(linear, binx, bins, guess)
+    fits, cov = curve_fit(linear, binx, binsl, guess)
     uncs = np.sqrt(np.diag(cov))
 
     # Creates a line for the data
@@ -75,15 +75,25 @@ def histogram(exp_results: dict):
     # Adds the best fit line to the plot
     axes[1].plot(linx, liny, linestyle='-', marker='', color = 'r')
 
+    # Tries adding a line to linear plot
+    expy = [exponential(x, fits[0], fits[1]) for x in linx]
+
+    axes[0].plot(linx, expy, linestyle='-', marker='', color = 'r')
+
+    # Shows the covariance matrix in full
+    print(cov)
 
     # Shows best guesses
-    print(f'Guesses\n.. m:\t{fits[0]} ± {uncs[0]}\n.. b:\t{fits[1]} ± {uncs[1]}')
+    print(f'\nGuesses\n.. m:\t{sigfigs(fits[0], uncs[0])}\n.. b:\t{sigfigs(fits[1], uncs[1])}')
 
     plt.show()
 
 
 def linear(x, m, b):
     return m * x + b
+
+def exponential(x, m, b):
+    return np.e ** (m * x + b)
 
 
 # Formats a number with its uncertainty
