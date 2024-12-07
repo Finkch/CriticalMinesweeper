@@ -85,3 +85,20 @@ def histogram(exp_results: dict):
 def linear(x, m, b):
     return m * x + b
 
+
+# Formats a number with its uncertainty
+def sigfigs(x, u):
+
+    # Gets the power of x
+    px = floor(log10(abs(x)))
+
+    # Divides down both until x has one digit before the decimal
+    x /= (10 ** px)
+    u /= (10 ** px)
+
+    # The precision of unc after 
+    pu = abs(floor(log10(u)))
+
+
+    # Formats and returns
+    return f'({round(x, pu)} ± {round(u, pu)}) × 10^{px}'
