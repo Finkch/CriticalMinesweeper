@@ -81,6 +81,7 @@ def histogram(exp_results: dict):
     axes[0].plot(linx, expy, linestyle='-', marker='', color = 'r')
 
     # Shows the covariance matrix in full
+    print('Covariance matrix:')
     print(cov)
 
     # Shows best guesses
