@@ -12,13 +12,13 @@ from logger import log
 
 
 # Do nothing
-def stasis(result: dict, step: float, alpha: float) -> tuple[float]:
+def stasis(self, result: dict) -> tuple[float]:
     return 0, 0, 1
 
 # The default.
 #   Step up based on how close max was to cutoff.
 #   Step down based on how few trials before the cutoff.
-def half_gradient(result: dict, step: float, alpha: float) -> tuple[float]:
+def half_gradient(self, result: dict) -> tuple[float]:
     
     # Determines the step size
     if result['infinite']:
@@ -36,10 +36,10 @@ def half_gradient(result: dict, step: float, alpha: float) -> tuple[float]:
         s = result['max'] / result['cutoff'] - 1
 
     # Updates density
-    delta = s * step
+    delta = s * self.step
 
     # Decreases step size exponentially
-    step *= alpha
+    step = self.step * self.alpha
 
     return delta, step, s
 
@@ -143,13 +143,13 @@ class CriticalDensity:
 
 
             # Calculates what the next rho should be
-            delta, nstep, s = self.stepper(result, self.step, self.alpha)
+            delta, nstep, s = self.stepper(self, result)
 
 
             # Prints experiment results
             if not quiet:
                 print(f'.. Step percent:\t{abs(s):.4f}')
-                print(f'.. Current step:\t{self.step:.4f} -> {self.step * self.alpha:4f}')
+                print(f'.. Current step:\t{self.step:.4f} -> {nstep:4f}')
                 print(f'.. Density:\t\t{self.rho:.4f} -> {self.rho + delta:.4f} ({delta:+.4f})')
                 print(f'.. Time taken:\t\t{end - start:.4f}s')
                 print(exp)
