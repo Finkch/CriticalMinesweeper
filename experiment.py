@@ -70,6 +70,7 @@ class Experiment:
         results['trials']   = len(self.results)
         results['rho']      = self.rho
         results['cutoff']   = self.cutoff
+        results['safe']     = self.r
         results['mean']     = sum(self.results) / len(self.results)
         results['median']   = self.results[len(self.results) // 2]
         results['min']      = self.results[0]
@@ -94,6 +95,7 @@ class Experiment:
         s += f'.. Trials:\t\t{results["trials"]} of {results["goal"]}\n'
         s += f'.. Density:\t\t{results["rho"]}\n'
         s += f'.. Cutoff:\t\t{results["cutoff"]}\n'
+        s += f'.. Safe Radius:\t\t{results["safe"]}\n'
         s += f'.. Average reveals:\t{results["mean"]}\t({results["mean"] / results["cutoff"] * 100:.2f}%)\n'
         s += f'.. Median reveals: \t{results["median"]}\t({results["median"] / results["cutoff"] * 100:.2f}%)\n'
         s += f'.. Count of infinities:\t{results["infinites"]}\t({results["infinites"] / results["trials"] * 100:.2f}%)\n'
@@ -111,6 +113,7 @@ def etostr(results):
     s += f'.. Trials:\t\t{results["trials"]} of {results["goal"]}\n'
     s += f'.. Density:\t\t{results["rho"]}\n'
     s += f'.. Cutoff:\t\t{results["cutoff"]}\n'
+    s += f'.. Safe Radius:\t\t{results["safe"]}\n'
     s += f'.. Average reveals:\t{results["mean"]}\t({float(results["mean"]) / float(results["cutoff"]) * 100:.2f}%)\n'
     s += f'.. Median reveals: \t{results["median"]}\t({float(results["median"]) / float(results["cutoff"]) * 100:.2f}%)\n'
     s += f'.. Count of infinities:\t{results["infinites"]}\t({float(results["infinites"]) / float(results["trials"]) * 100:.2f}%)\n'
