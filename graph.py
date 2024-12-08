@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from experiment import Experiment
 from scipy.optimize import curve_fit
 from math import ceil, floor, log10
+
+from fits import linear, exponential
 
 
 # Plots a histogram of all trials.
@@ -88,13 +89,6 @@ def histogram(exp_results: dict):
     print(f'\nGuesses\n.. m:\t{sigfigs(fits[0], uncs[0])}\n.. b:\t{sigfigs(fits[1], uncs[1])}')
 
     plt.show()
-
-
-def linear(x, m, b):
-    return m * x + b
-
-def exponential(x, m, b):
-    return np.e ** (m * x + b)
 
 
 # Formats a number with its uncertainty
