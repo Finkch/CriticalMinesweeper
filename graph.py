@@ -109,3 +109,28 @@ def histogram(exp_results: dict):
 
     plt.show()
 
+
+# These results are a straight delog.
+# Instead, dict where key is radius of safe zone
+def show_is_start_rho(results: dict):
+    
+    # Isolates the values of rho for easier calculation
+    rhos = [rho for rho in results.values()]
+    
+    # Finds the average rho and its error
+    mean = np.mean(rhos)
+    se = np.std(rhos) / np.sqrt(len(rhos))
+    
+    # Prints the results
+    print(f'Mean critical density over r = [0, 9]:\n.. {sigfigs(mean, se)}')
+
+    # Creates the plot
+    fig, ax1 = plt.subplots()
+
+    # Creates a bar plot for the rhos
+    ax1.set_xlabel('radius of safe starting area (cells)')
+    ax1.set_ylabel('critical density')
+    ax1.bar([k for k in results], rhos)
+
+
+    plt.show()
