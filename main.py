@@ -85,6 +85,7 @@
 # Well...linear fit has errors smaller than 5%, so it's linear with 95% confidence? At the very least,
 # the exponential decay is _very_ close to being exact.
 
+import critical
 from critical import CriticalDensity
 from experiment import Experiment
 
@@ -97,20 +98,27 @@ def CDFinder():
     performance = False
     quiet = False
     
-    experiments = int(1e2)
-    trials = int(1e3)
-    cutoff = 1e5
-    alpha = 0.65
-    step = 0.15
-    rho = 2 / 5
+    experiments = int(1e3)
+    #trials = int(1e2)
+    trials = 25
+    cutoff = 1e6
+    alpha = 0.8
+    step = 0.05
+    rho = 0
     do_cutoff = True
     #do_cutoff = False
     r = 1
 
     finder_cutoff = 1e-5
-    lastn = 5
+    lastn = 0
 
-    logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
+    #stepper = critical.half_gradient
+    stepper = critical.down_step
+
+    logdir = None
+    logdir = 'custom'
+    #logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
+    
 
     if performance:
         experiments = 10
@@ -120,20 +128,20 @@ def CDFinder():
         do_cutoff = False
 
 
-    for i in range(10):
+    #for i in range(10):
 
-        print(f'\nStarting CDFinder run {i + 1} with safe zone r = {i}')
+    #print(f'\nStarting CDFinder run {i + 1} with safe zone r = {i}')
 
-        r = i
-        logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
+    #r = i
+    #logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
 
-        finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, r, step, alpha, lastn, finder_cutoff, compress = False, logdir = logdir)
+    finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, r, step, alpha, lastn, finder_cutoff, stepper, compress = False, logdir = logdir)
 
-        rho_critical = finder.find(quiet)
+    rho_critical = finder.find(quiet)
 
-        print(finder.str_time())
+    print(finder.str_time())
 
-        print(f'Critical density:\n\trho_critical = {rho_critical}\n')
+    print(f'Critical density:\n\trho_critical = {rho_critical}\n')
 
 
 # Execution path to perform a single experiment

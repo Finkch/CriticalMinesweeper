@@ -45,6 +45,44 @@ def half_gradient(self, result: dict) -> tuple[float]:
 
 
 
+# This function starts in the infinite case and walks down to CD. Works best with LARGE cutoff
+#   Step up never. If exp is non-infinute, do no step and return to previous state but with a smaller step.
+#   Step down when trial was infinute. Do not decrease step size.
+def down_step(self, result: dict) -> tuple[float]:
+    
+    # Used to step back
+    if not hasattr(self, 'previous_rho'):
+        self.previous_rho = [0]
+
+    # Declarations
+    rho     = self.rho
+    delta   = 0
+    step    = 0
+    s       = 0
+
+    if result['infinite']:
+
+        # This step was infinite, so we're safe to return to it
+        self.previous_rho.append(rho)
+
+        s = 1
+        step = self.step
+        delta = step
+        rho = rho + delta
+    
+    else:
+        
+        # Return to the previous rho
+        rho = self.previous_rho.pop()
+
+        # Decreases step
+        step = self.step * self.alpha
+        delta = self.rho - rho
+        s = -1
+
+    return rho, delta, step, s
+
+
 
 
 class CriticalDensity:
