@@ -44,6 +44,17 @@
 #       - Since Sweeper has r, min_reveals = 2 * (r + 1) ^ 2
 #           + Or just count during initialisation
 
+# Questions about infinite Minesweeper:
+#   * ! What is the critical density !
+#   x   * Is CD proportional to the initial starting area?
+#   x       + No! That means my assumption that surface area proportional p(infinite) was incorrect
+#   x       + It seems what is really is that frontier size doesn't matter for p(infinite)! It's about the average!
+#   * How would CDFinder fare if trials = very small and cutoff = very large?
+#       - This paradigm assumes that below CD, p(infinite) is very large
+#       - We could use this to approach CD from the right
+#   * What is the curve formed by increasing trials and/or cutoff?
+#       - We could use this curve to get a better estimate for CD
+
 # Dangit. My performance gains caused rho_critical to go from 0.1034 to ~0.2
 # In fact, oddly close to doubling. Huh...
 #   ...
