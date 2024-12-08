@@ -155,9 +155,9 @@ class CriticalDensity:
                 print(exp)
 
 
-        # Updates values
-        self.step = nstep
-        self.rho += delta
+            # Updates values
+            self.step = nstep
+            self.rho += delta
 
 
         self.time_results.sort()
