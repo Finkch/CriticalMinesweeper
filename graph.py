@@ -6,6 +6,25 @@ from math import ceil, floor, log10
 from fits import linear, exponential
 
 
+# Formats a number with its uncertainty.
+# I will steal this function for later use - the simplest and cleanest I ever made it!
+def sigfigs(x, u):
+
+    # Gets the power of x
+    px = floor(log10(abs(x)))
+
+    # Divides down both until x has one digit before the decimal
+    x /= (10 ** px)
+    u /= (10 ** px)
+
+    # The precision of unc after 
+    pu = abs(floor(log10(u)))
+
+
+    # Formats and returns
+    return f'({round(x, pu)} ± {round(u, pu)}) × 10^{px}'
+
+
 # Plots a histogram of all trials.
 # Only really makes sense is rho_critical is constant over experiments
 def histogram(exp_results: dict):
@@ -90,20 +109,3 @@ def histogram(exp_results: dict):
 
     plt.show()
 
-
-# Formats a number with its uncertainty
-def sigfigs(x, u):
-
-    # Gets the power of x
-    px = floor(log10(abs(x)))
-
-    # Divides down both until x has one digit before the decimal
-    x /= (10 ** px)
-    u /= (10 ** px)
-
-    # The precision of unc after 
-    pu = abs(floor(log10(u)))
-
-
-    # Formats and returns
-    return f'({round(x, pu)} ± {round(u, pu)}) × 10^{px}'
