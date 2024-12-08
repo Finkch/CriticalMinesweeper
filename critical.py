@@ -6,8 +6,48 @@ from time import time
 
 from logger import log
 
+
+
+# Various methods to find what the step out to be
+
+
+# Do nothing
+def stasis(result: dict, step: float, alpha: float) -> tuple[float]:
+    return 0, 0, 1
+
+# The default.
+#   Step up based on how close max was to cutoff.
+#   Step down based on how few trials before the cutoff.
+def half_gradient(result: dict, step: float, alpha: float) -> tuple[float]:
+    
+    # Determines the step size
+    if result['infinite']:
+        
+        # Step size is proportional to how quickly the board went infinite.
+        # The faster the infinite, the greater the change
+        s = 1 - result['trials'] / result['goal']
+
+    else:
+
+        # Step size is proportional to how close it got to being infinite.
+        # The closer to infinite, the smaller the change.
+        # Negative value since we want rho to decrease
+        # I'll need to play around with this one
+        s = result['max'] / result['cutoff'] - 1
+
+    # Updates density
+    delta = s * step
+
+    # Decreases step size exponentially
+    step *= alpha
+
+    return delta, step, s
+
+
+
+
 class CriticalDensity:
-    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, r: int, step: float, alpha: float, lastn: int, finder_cutoff: float, compress: bool = True, logdir: str = None) -> None:
+    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, r: int, step: float, alpha: float, lastn: int, finder_cutoff: float, stepper: callable = half_gradient, compress: bool = True, logdir: str = None) -> None:
         
         # The number of experiments to run
         self.experiments = experiments
@@ -42,6 +82,9 @@ class CriticalDensity:
 
         # Alpha is a decay constant
         self.alpha = alpha
+
+        # How to calculate the next rho
+        self.stepper = stepper
 
 
 
@@ -99,23 +142,8 @@ class CriticalDensity:
                 self.results_full.append(exp.results)
 
 
-            # Determines the step size
-            if result['infinite']:
-                
-                # Step size is proportional to how quickly the board went infinite.
-                # The faster the infinite, the greater the change
-                s = 1 - result['trials'] / result['goal']
-
-            else:
-
-                # Step size is proportional to how close it got to being infinite.
-                # The closer to infinite, the smaller the change.
-                # Negative value since we want rho to decrease
-                # I'll need to play around with this one
-                s = result['max'] / result['cutoff'] - 1
-
-            # Updates density
-            delta = s * self.step
+            # Calculates what the next rho should be
+            delta, nstep, s = self.stepper(result, self.step, self.alpha)
 
 
             # Prints experiment results
@@ -126,10 +154,11 @@ class CriticalDensity:
                 print(f'.. Time taken:\t\t{end - start:.4f}s')
                 print(exp)
 
-            self.rho += delta
 
-            # Decreases step size exponentially
-            self.step *= self.alpha
+        # Updates values
+        self.step = nstep
+        self.rho += delta
+
 
         self.time_results.sort()
 
