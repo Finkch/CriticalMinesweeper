@@ -57,7 +57,7 @@ def unlog(path: str):
                 with open(f'{path}/{file}') as f:
                     for line in f:
                         splits = line.split(',')
-                        results['fullc'].append([int(split) for split in splits])
+                        results['fullc'].append([split for split in splits])
 
             case 'compressedc.csv':
                 results['compressedc'] = []
@@ -69,12 +69,18 @@ def unlog(path: str):
                             kv = split.split(':')
                             results['compressedc'][-1][kv[0]] = kv[1].strip()
             
-            case 'rhos.csv':
+            case 'rhosc.csv':
                 with open(f'{path}/{file}') as f:
                     results['rhosc'] = [float(line) for line in f]
 
             case 'timesc.csv':
                 with open(f'{path}/{file}') as f:
                     results['timesc'] = [float(line) for line in f]
+
+            case '.DS_Store':
+                pass # Stupid, smelly .DS_Store!
+            
+            case _:
+                assert False, f'Unrecognised file "{file}"'
 
     return results
