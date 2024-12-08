@@ -57,13 +57,10 @@ def is_start_rho():
 
     # Grabs the results we care about.
     # That is the final value found, i.e. the CD Finder's found CD
-    results = [exp['rhosc'][-1] for exp in exps]
+    results = {i: exps[i]['rhosc'][-1] for i in range(len(exps))}
 
-    # Finds the average rho and its error
-    mean = np.mean(results)
-    se = np.std(results) / np.sqrt(len(results))
-    
-    print(f'Mean critical density over r = [0, 9]:\n.. {graph.sigfigs(mean, se)}')
+    # Shows that CD and initial starting area are unrelated
+    graph.show_is_start_rho(results)
     
 
 
