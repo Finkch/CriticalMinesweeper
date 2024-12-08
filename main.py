@@ -40,6 +40,9 @@
 #   x   * Figure out why rho_critical keeps changing and get a more true value
 #   x       - Visual representation of Minesweeper state
 #   x       - Be able to walk through Minesweeper states
+#   * Add new category for experiment results that is number of minimum reveals
+#       - Since Sweeper has r, min_reveals = 2 * (r + 1) ^ 2
+#           + Or just count during initialisation
 
 # Dangit. My performance gains caused rho_critical to go from 0.1034 to ~0.2
 # In fact, oddly close to doubling. Huh...
@@ -72,13 +75,7 @@
 # the exponential decay is _very_ close to being exact.
 
 from critical import CriticalDensity
-from experiment import Experiment, etostr
-from minesweeper import Minesweeper
-
-from visualise import visualise, pygame_init
-
-import graph
-from logger import unlog
+from experiment import Experiment
 
 from time import time
 from math import floor, log10
@@ -87,13 +84,13 @@ from math import floor, log10
 def CDFinder():
 
     performance = False
-    quiet = True
+    quiet = False
     
     experiments = int(1e2)
     trials = int(1e3)
-    cutoff = 1e6
+    cutoff = 1e5
     alpha = 0.65
-    step = 0.3
+    step = 0.15
     rho = 2 / 5
     do_cutoff = True
     #do_cutoff = False
@@ -101,7 +98,6 @@ def CDFinder():
 
     finder_cutoff = 1e-5
     lastn = 5
-    lastn = 0
 
     logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
 
@@ -114,6 +110,8 @@ def CDFinder():
 
 
     for i in range(10):
+
+        print(f'\nStarting CDFinder run {i + 1} with safe zone r = {i}')
 
         r = i
         logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
@@ -160,38 +158,5 @@ def experiment():
 
 
 
-# Execution path to visualise a given trial
-def see_ms():
-
-    rho = 0.1
-    cutoff = 1000
-
-    ms = Minesweeper(rho, cutoff, True)
-    ms.sweep()
-
-    pygame_init()
-    visualise(ms)
-
-# Execution path to run an experiment and see the results
-def plot():
-    
-    dir = '5x7rho0-1'
-
-    # Obtains the results from file
-    results = unlog(f'Results/{dir}')
-
-    # Performs a printout of the parameters
-    if 'compressede' in results:
-        print(etostr(results['compressede']))
-    elif 'compressedc' in results:  # Prints first and last
-        print(etostr(results['compressedc'][0]))
-        print(etostr(results['compressedc'][-1]))
-
-    graph.histogram(results)
-
-
-
 CDFinder()
 #experiment()
-#see_ms()
-#plot()
