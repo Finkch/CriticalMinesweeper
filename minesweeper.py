@@ -6,7 +6,8 @@
 #   4 = at least one adjacent mine
 #   8 = item has been placed in the reveal queue
 
-from random import random, sseed
+from random import random
+from random import seed as sseed
 from copy import deepcopy
 from time import time
 
