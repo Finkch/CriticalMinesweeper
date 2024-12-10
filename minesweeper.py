@@ -76,13 +76,19 @@ class Minesweeper:
         # Since we're calling this method a tone, faster to make it local
         reveal = self.reveal
 
+        # Tracks the growth factor
+        alpha = 0
+
         # Keeps revealing cells until either the cutoff is reached, or no cells left to reveal
         while reveals < len(rq) and reveals < cutoff:
-            reveal(rq[reveals], grid, rq, rho, visualise)
+            alpha += reveal(rq[reveals], grid, rq, rho, visualise)
             reveals += 1
 
         # Updates value
         self.reveals = reveals
+
+        # Returns growth factor
+        return alpha / reveals
     
 
     # Performs a "single" reveal
@@ -98,6 +104,10 @@ class Minesweeper:
 
         # Reaveals the cell
         grid[pos] |= 1
+
+        # Calculates the growth factor of this cell:
+        # the number of cells this reveal has added to the torq.
+        alpha = 0
 
         
         # Creates new cells in unoccupied grid positions
@@ -131,6 +141,7 @@ class Minesweeper:
                     if not grid[npos] & 9:
                         rq.append(npos)
                         grid[npos] |= 8
+                        alpha += 1
 
         # Save data for visualisation later
         if visualise:
@@ -138,6 +149,7 @@ class Minesweeper:
             self.cells.append(pos)
             #self.torqs.append(torq if not grid[pos] & 4 else [])
 
+        return alpha
 
 
 # Following is a list of performance data and the changes relative to old or current.
