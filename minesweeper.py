@@ -6,7 +6,7 @@
 #   4 = at least one adjacent mine
 #   8 = item has been placed in the reveal queue
 
-from random import random, seed
+from random import random, sseed
 from copy import deepcopy
 from time import time
 
@@ -42,7 +42,7 @@ class Minesweeper:
 
         # Sets random seed
         self.seed = seed if seed else time()
-        seed(self.seed)
+        sseed(self.seed)
 
 
         # Starting cell.
