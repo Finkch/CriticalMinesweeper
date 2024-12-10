@@ -40,6 +40,9 @@ def unlog(path: str):
                 with open(f'{path}/{file}') as f:
                     results['fulle'] = [int(line) for line in f]
 
+            case 'alphase.csv':
+                with open(f'{path}/{file}') as f:
+                    results['alphase'] = [int(line) for line in f]
 
             case 'compressede.csv':
                 results['compressede'] = {}
@@ -58,6 +61,13 @@ def unlog(path: str):
                     for line in f:
                         splits = line.split(',')
                         results['fullc'].append([split for split in splits])
+            
+            case 'alphasc.csv':
+                results['alphasc'] = []
+                with open(f'{path}/{file}') as f:
+                    for line in f:
+                        splits = line.split(',')
+                        results['alphasc'].append([split for split in splits])
 
             case 'compressedc.csv':
                 results['compressedc'] = []

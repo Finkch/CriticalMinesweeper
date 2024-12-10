@@ -143,6 +143,7 @@ class CriticalDensity:
         # Only tracked if compress is false
         self.compress = compress
         self.results_full = []
+        self.alphas_full = []
 
         # Where to log.
         # If None, then don't log
@@ -179,6 +180,7 @@ class CriticalDensity:
             # If we don't care about memory, tracks the reveals in each trial in each experiment
             if not self.compress:
                 self.results_full.append(exp.results)
+                self.alphas_full.append(exp.alphas)
 
 
             # Calculates what the next rho should be
@@ -206,6 +208,7 @@ class CriticalDensity:
             log(self.logdir, 'timesc', self.time_results)
             log(self.logdir, 'rhosc', self.rhos)
             log(self.logdir, 'fullc', self.results_full)
+            log(self.logdir, 'alphasc', self.alphas_full)
 
         # The equilibrium value
         return self.rho
