@@ -15,7 +15,7 @@ from time import time
 # Visualise pushes each step into a queue so we can go over the reveal stepwise later.
 # r is the initial safezone radius; 0 -> classic start, 1 -> modern start.
 class Minesweeper:
-    def __init__(self, rho: float, cutoff: int, r: int = 1, visualise: bool = False) -> None:
+    def __init__(self, rho: float, cutoff: int, r: int = 1, visualise: bool = False, seed: float = None) -> None:
         
         # the number of reveals
         self.reveals: int = 0
@@ -41,7 +41,7 @@ class Minesweeper:
         self.torqs = []
 
         # Sets random seed
-        self.seed = time()
+        self.seed = seed if seed else time()
         seed(self.seed)
 
 
