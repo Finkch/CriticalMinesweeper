@@ -61,9 +61,25 @@ def is_start_rho():
 
     # Shows that CD and initial starting area are unrelated
     graph.show_is_start_rho(results)
+
+# Compares the growth factor, alpha, for various rhos
+def alphas():
+    
+    dir = 'Alphas'
+
+    dir = f'Results/{dir}'
+
+    dirs = os.listdir(dir)
+
+    # Grabs each experiment
+    exps = [unlog(f'{dir}/{exp}') for exp in dirs if exp != '.DS_Store']
+
+    graph.alphas(exps)
+
     
 
 
 #see_ms()
 #histogram()
-is_start_rho()
+#is_start_rho()
+alphas()
