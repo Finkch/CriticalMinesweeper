@@ -3,7 +3,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 from math import ceil, floor, log10
 
-from fits import linear, exponential, power, rational
+from fits import linear, exponential, exponentialp1, powerp1, rationalp1
 
 
 # Formats a number with its uncertainty.
@@ -196,9 +196,9 @@ def show_max_alphas(alphas, cutoffs):
 
     # Grabs the functions for the fits
     funcs = {
-        'exponential': exponential,
-        'power': power,
-        'rational': rational
+        'exponential': exponentialp1,
+        'power': powerp1,
+        'rational': rationalp1
     }
 
     # List of fits
