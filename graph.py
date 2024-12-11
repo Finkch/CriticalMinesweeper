@@ -134,3 +134,48 @@ def show_is_start_rho(results: dict):
 
 
     plt.show()
+
+
+def alphas(exps: list):
+    
+    # Grabs relevant data
+    alphas = [exp['alphase'] for exp in exps]
+    rhos = [float(exp['compressede']['rho']) for exp in exps]
+
+    # Packeges key results together so they can be sorted
+    results = sorted([[alphas[i], rhos[i]] for i in range(len(alphas))], key = lambda x: x[1])
+
+    infinities = []
+
+    # Gets the plots
+    fig, ax = plt.subplots()
+
+    # Creates a scatter plot of growth factors for each rho
+    for i in range(len(results)):
+        ax.scatter(
+            [j / len(results[i][0]) for j in range(len(results[i][0]))],
+            results[i][0],
+            label = r'${\rho}$ = ' + f'{results[i][1]:.3f}'
+        )
+
+        # Gets a list of the earliest infinites
+        # for j in range(len(results[i][0])):
+        #     if results[i][0][j] >= 1:
+        #         infinities.append([j, results[i][1]])
+        #         break
+
+
+    # Shows where each goes infinite
+    sx = [inf[0] for inf in infinities]
+    sy = [1 for inf in infinities]
+    ax.scatter(sx, sy, color = 'black', marker = 'x')
+
+
+    # Shows labels
+    ax.set_xlabel(r'P(${\alpha} {\geq}$ X)')
+    ax.set_ylabel(r'growth factor ${\alpha}$ (unitless)')
+
+    ax.legend(loc = 'lower right')
+
+
+    plt.show()
