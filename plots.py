@@ -74,7 +74,27 @@ def alphas():
     # Grabs each experiment
     exps = [unlog(f'{dir}/{exp}') for exp in dirs if exp != '.DS_Store']
 
-    graph.alphas(exps)
+    graph.show_alphas(exps)
+
+# Shows how alpha is proportional to the cutoff.
+# The smaller the cutoff, the larger the alpha.
+# Here, rho is zero.
+def max_alphas():
+    
+    dir = 'MaxAlphas'
+
+    dir = f'Results/{dir}'
+
+    dirs = os.listdir(dir)
+
+    # Grabs each experiment
+    results = [unlog(f'{dir}/{exp}') for exp in dirs if exp != '.DS_Store']
+
+    # Grabs relevant information
+    alphas = [exp['alphase'][0] for exp in results]
+    cutoffs = [float(exp['compressede']['cutoff']) for exp in results]
+
+    graph.show_max_alphas(alphas, cutoffs)
 
     
 
@@ -82,4 +102,5 @@ def alphas():
 #see_ms()
 #histogram()
 #is_start_rho()
-alphas()
+#alphas()
+max_alphas()

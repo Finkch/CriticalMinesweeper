@@ -3,7 +3,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 from math import ceil, floor, log10
 
-from fits import linear, exponential
+from fits import linear, exponential, power, rational
 
 
 # Formats a number with its uncertainty.
@@ -136,7 +136,7 @@ def show_is_start_rho(results: dict):
     plt.show()
 
 
-def alphas(exps: list):
+def show_alphas(exps: list):
     
     # Grabs relevant data
     alphas = [exp['alphase'] for exp in exps]
@@ -177,5 +177,71 @@ def alphas(exps: list):
 
     ax.legend(loc = 'lower right')
 
+
+    plt.show()
+
+# When rho is zero, how does alpha grow?
+def show_max_alphas(alphas, cutoffs):
+
+    # Gets the important information
+    alphas.sort(reverse = True)
+    cutoffs = [i for i in range(len(cutoffs))] # Use radius rather than cells for cutoff
+
+    # Gets initial guesses
+    guesses = {
+        'exponential': (-1, 2),
+        'power': (-1, 2),
+        'rational': (2, 3)
+    }
+
+    # Grabs the functions for the fits
+    funcs = {
+        'exponential': exponential,
+        'power': power,
+        'rational': rational
+    }
+
+    # List of fits
+    fits, covs, uncs = {}, {}, {}
+
+    # Performs a series of fits
+    for guess in guesses:
+
+        # Does the fit
+        fit, cov = curve_fit(funcs[guess], cutoffs, alphas)
+
+        # Grabs the data and uncertainty
+        fits[guess] = fit
+        covs[guess] = cov
+        uncs[guess] = np.sqrt(np.diag(cov))
+
+
+
+    # Plots the data
+    fig, ax = plt.subplots()
+    ax.scatter(cutoffs, alphas, color = 'black')
+
+
+    # Plots the guesses
+    x = np.arange(min(cutoffs), max(cutoffs), 0.01)
+
+    # Plots each of the guesses
+    for guess in guesses:
+
+        # Gets y data by applying the fit
+        y = [funcs[guess](xi, *fits[guess]) for xi in x]
+
+        # Plots
+        ax.plot(x, y, label = guess)
+
+        # Prints the best guess parameters
+        print(f'Best fit for {guess}:\n.. a: {sigfigs(fits[guess][0], uncs[guess][0])}\n.. b: {sigfigs(fits[guess][1], uncs[guess][1])}\n')
+
+
+    # Labels and such
+    ax.set_xlabel('radius (cells)')
+    ax.set_ylabel(r'max growth factor ${\alpha}_{max}$')
+
+    ax.legend()
 
     plt.show()
