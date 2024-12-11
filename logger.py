@@ -38,11 +38,11 @@ def unlog(path: str):
             # Experiment results
             case 'fulle.csv':
                 with open(f'{path}/{file}') as f:
-                    results['fulle'] = [int(line) for line in f]
+                    results['fulle'] = [int(line.strip()) for line in f]
 
             case 'alphase.csv':
                 with open(f'{path}/{file}') as f:
-                    results['alphase'] = [int(line) for line in f]
+                    results['alphase'] = [float(line.strip()) for line in f]
 
             case 'compressede.csv':
                 results['compressede'] = {}
@@ -81,11 +81,11 @@ def unlog(path: str):
             
             case 'rhosc.csv':
                 with open(f'{path}/{file}') as f:
-                    results['rhosc'] = [float(line) for line in f]
+                    results['rhosc'] = [float(line.strip()) for line in f]
 
             case 'timesc.csv':
                 with open(f'{path}/{file}') as f:
-                    results['timesc'] = [float(line) for line in f]
+                    results['timesc'] = [float(line.strip()) for line in f]
 
             case '.DS_Store':
                 pass # Stupid, smelly .DS_Store!
