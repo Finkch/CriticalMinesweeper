@@ -3,7 +3,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 from math import ceil, floor, log10
 
-from fits import linear, exponential, exponentialp1, powerp1, rationalp1
+from fits import linear, exponential, exponentialp1, powerp1, rationalp1, horizontal
 
 
 # Formats a number with its uncertainty.
@@ -171,11 +171,68 @@ def show_alphas(exps: list):
     ax.scatter(sx, sy, color = 'black', marker = 'x')
 
 
+    # Performs a curve fit
+    fits, covs, uncs = {}, {}, {}
+
+    for result in results:
+
+        guess = (1 / result[1], 1 / result[1])
+
+        fit, cov = curve_fit(
+            horizontal,
+            [j / len(result[0]) for j in range(len(result[0]))],
+            result[0],
+            guess
+        )
+
+        fits[result[1]] = fit
+        covs[result[1]] = cov
+        uncs[result[1]] = np.sqrt(np.diag(cov))
+
+
+    # Plots each of the guesses
+    x = np.arange(0, 1, 0.01)
+    for fit in fits:
+        y = [horizontal(xi, *fits[fit]) for xi in x]
+
+        #ax.plot(x, y, color = 'black')
+
+        #print(f'Best fit for {fit}:\n.. a: {sigfigs(fits[fit][0], uncs[fit][0])}\n.. b: {sigfigs(fits[fit][1], uncs[fit][1])}\n')
+
     # Shows labels
-    ax.set_xlabel(r'P(${\alpha} {\geq}$ X)')
+    ax.set_xlabel(r'P(${\alpha} {\leq}$ X)')
     ax.set_ylabel(r'growth factor ${\alpha}$ (unitless)')
 
+    #ax.set_yscale('log')
+    #ax.set_xscale('log')
+
     ax.legend(loc = 'lower right')
+
+
+    # Shows the average of each
+    for result in results:
+
+        alphas = result[0]
+        rho = result[1]
+
+        mean = sum(alphas) / len(alphas)
+        mini = min(alphas)
+        maxi = max(alphas)
+
+        var = np.var(alphas)
+
+
+        weights = [np.e ** (-((alpha - mean)) ** 2 / 2 / var) for alpha in alphas]
+        wmean = sum([weights[i] * alphas[i] for i in range(len(alphas))]) / sum(weights)
+
+        print(r'For ${\rho}$ = ' + f'{rho:.3f}:')
+        print(f'Mean:\t{mean:.4f}')
+        print(f'Mini:\t{mini:.4f}')
+        print(f'Maxi:\t{maxi:.4f}')
+        print(f'w-Mean:\t{wmean:.4f}')
+        print()
+        
+
 
 
     plt.show()
