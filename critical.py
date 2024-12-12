@@ -12,20 +12,20 @@ from logger import log
 
 
 # Do nothing
-def stasis(self, result: dict) -> tuple[float]:
+def stasis(self, mesa: dict, meta: dict) -> tuple[float]:
     return self.rho, 0, 0, 1
 
 # The default.
 #   Step up based on how close max was to cutoff.
 #   Step down based on how few trials before the cutoff.
-def half_gradient(self, result: dict) -> tuple[float]:
+def half_gradient(self, mesa: dict, meta: dict) -> tuple[float]:
     
     # Determines the step size
-    if result['infinite']:
+    if meta['infinite']:
         
         # Step size is proportional to how quickly the board went infinite.
         # The faster the infinite, the greater the change
-        s = 1 - result['trials'] / result['goal']
+        s = 1 - meta['trials'] / meta['goal']
 
     else:
 
@@ -33,7 +33,7 @@ def half_gradient(self, result: dict) -> tuple[float]:
         # The closer to infinite, the smaller the change.
         # Negative value since we want rho to decrease
         # I'll need to play around with this one
-        s = result['max'] / result['cutoff'] - 1
+        s = max(mesa, key = lambda x: x[0])[0] / meta['cutoff'] - 1
 
     # Updates density
     delta = s * self.step
@@ -48,7 +48,7 @@ def half_gradient(self, result: dict) -> tuple[float]:
 # This function starts in the infinite case and walks down to CD. Works best with LARGE cutoff
 #   Step up never. If exp is non-infinute, do no step and return to previous state but with a smaller step.
 #   Step down when trial was infinute. Do not decrease step size.
-def down_step(self, result: dict) -> tuple[float]:
+def down_step(self, mesa: dict, meta: dict) -> tuple[float]:
     
     # Used to step back
     if not hasattr(self, 'previous_rho'):
@@ -60,7 +60,7 @@ def down_step(self, result: dict) -> tuple[float]:
     step    = 0
     s       = 0
 
-    if result['infinite']:
+    if meta['infinite']:
 
         # This step was infinite, so we're safe to return to it
         self.previous_rho.append(rho)
@@ -86,7 +86,7 @@ def down_step(self, result: dict) -> tuple[float]:
 
 
 class CriticalDensity:
-    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, r: int, step: float, alpha: float, lastn: int, finder_cutoff: float, stepper: callable = half_gradient, compress: bool = True, logdir: str = None) -> None:
+    def __init__(self, experiments: int, trials: int, rho_initial: float, cutoff_initial: int, do_cutoff: bool, r: int, step: float, alpha: float, lastn: int, finder_cutoff: float, stepper: callable = half_gradient, logdir: str = None) -> None:
         
         # The number of experiments to run
         self.experiments = experiments
@@ -135,15 +135,10 @@ class CriticalDensity:
 
 
         # A list of experimental results
-        self.results = []
-        self.time_results = []
+        self.mesas = []
+        self.metas = []
+        self.times = []
         self.rhos = []
-
-        # A list of count of reveals for each experiment.
-        # Only tracked if compress is false
-        self.compress = compress
-        self.results_full = []
-        self.alphas_full = []
 
         # Where to log.
         # If None, then don't log
@@ -169,22 +164,17 @@ class CriticalDensity:
 
             # Runs the experiment
             start = time()
-            result = exp.begin()
+            mesa, meta = exp.begin()
             end = time()
 
             # Adds the experiment's results
-            self.results.append(result)
-            self.time_results.append(end - start)
+            self.mesas.append(mesa)
+            self.metas.append(meta)
+            self.times.append(end - start)
             self.rhos.append(self.rho)
 
-            # If we don't care about memory, tracks the reveals in each trial in each experiment
-            if not self.compress:
-                self.results_full.append(exp.results)
-                self.alphas_full.append(exp.alphas)
-
-
             # Calculates what the next rho should be
-            nrho, delta, nstep, s = self.stepper(self, result)
+            nrho, delta, nstep, s = self.stepper(self, mesa, meta)
 
 
             # Prints experiment results
@@ -200,15 +190,11 @@ class CriticalDensity:
             self.step = nstep
             self.rho = nrho
 
-
-        self.time_results.sort()
-
         if self.logdir:
-            log(self.logdir, 'compressedc', self.results)
-            log(self.logdir, 'timesc', self.time_results)
-            log(self.logdir, 'rhosc', self.rhos)
-            log(self.logdir, 'fullc', self.results_full)
-            log(self.logdir, 'alphasc', self.alphas_full)
+            log(self.logdir, 'cdTimes', self.times)
+            log(self.logdir, 'cdRhos', self.rhos)
+            log(self.logdir, 'cdMesa', mesa)
+            log(self.logdir, 'cdMeta', meta)
 
         # The equilibrium value
         return self.rho
@@ -217,11 +203,11 @@ class CriticalDensity:
     def str_time(self):
         return f"""
 Performance data:
-.. Total time:\t\t{sum(self.time_results):.4f}s
-.. Mean time:\t\t{sum(self.time_results) / len(self.time_results):.4f}s
-.. Median time:\t\t{self.time_results[len(self.time_results) // 2]:.4f}s
-.. Minimum time:\t{self.time_results[0]:.4f}s
-.. Maximum time:\t{self.time_results[-1]:.4f}s
+.. Total time:\t\t{sum(self.times):.4f}s
+.. Mean time:\t\t{sum(self.times) / len(self.times):.4f}s
+.. Median time:\t\t{self.times[len(self.times) // 2]:.4f}s
+.. Minimum time:\t{self.times[0]:.4f}s
+.. Maximum time:\t{self.times[-1]:.4f}s
 """
 
     # Check if there has been minimal change over the past few trials

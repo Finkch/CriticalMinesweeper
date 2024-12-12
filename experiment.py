@@ -63,78 +63,68 @@ class Experiment:
     # Compresses the results
     def process(self) -> dict:
 
-        self.results.sort()
-        self.alphas.sort()
+        # A list of experimentally determined reveals, alphas packed together
+        mesa = [[self.results[i], self.alphas[i]] for i in range(len(self.results))]
 
-        results = {}
-
-        results['infinite'] = self.results[-1] == self.cutoff
-        results['goal']     = self.trials
-        results['trials']   = len(self.results)
-        results['rho']      = self.rho
-        results['cutoff']   = self.cutoff
-        results['safe']     = self.r
-        results['mean']     = sum(self.results) / len(self.results)
-        results['median']   = self.results[len(self.results) // 2]
-        results['min']      = self.results[0]
-        results['max']      = self.results[-1]
-        results['amean']    = sum(self.alphas) / len(self.alphas)
-        results['amedian']  = self.alphas[len(self.alphas) // 2]
-        results['amin']     = self.alphas[0]
-        results['amax']     = self.alphas[-1]
-        results['infinites']= sum([1 for result in self.results if result == self.cutoff])
+        # Metadata of the experimental parameters
+        meta = {
+            'goal':     self.trials,
+            'trials':   len(self.results),
+            'rho':      self.rho,
+            'cutoff':   self.cutoff,
+            'd':        self.r,
+            'max':      max(self.results),
+            'min':      min(self.results),
+            'mean':     sum(self.results) / len(self.results),
+            'amin':     min(self.alphas),
+            'amax':     max(self.alphas),
+            'amean':    sum(self.alphas) / len(self.alphas),
+            'infinite': max(self.results) == self.cutoff
+        }
 
         # Logs the experiment
         if self.logdir:
-            log(self.logdir, 'fulle', self.results)
-            log(self.logdir, 'alphase', self.alphas)
-            log(self.logdir, 'compressede', results)
+            log(self.logdir, 'expMesa', mesa)
+            log(self.logdir, 'expMeta', meta)
 
-        return results
+        return mesa, meta
 
 
     def __str__(self) -> str:
 
-        # Grabs the data
-        results = self.process()
+        mean = sum(self.results) / len(self.results)
+        amean = sum(self.alphas) / len(self.alphas)
 
-        s = 'Experiment results: valid density.\n' if not results['infinite'] else 'Experiment results: INFINTIE.\n'
+        s = 'Experiment results: valid density.\n' if max(self.results) < self.cutoff else 'Experiment results: INFINTIE.\n'
 
-        s += f'.. Trials:\t\t{results["trials"]} of {results["goal"]}\n'
-        s += f'.. Density:\t\t{results["rho"]}\n'
-        s += f'.. Cutoff:\t\t{results["cutoff"]}\n'
-        s += f'.. Safe Radius:\t\t{results["safe"]}\n'
-        s += f'.. Average reveals:\t{results["mean"]}\t({results["mean"] / results["cutoff"] * 100:.2f}%)\n'
-        s += f'.. Median reveals: \t{results["median"]}\t({results["median"] / results["cutoff"] * 100:.2f}%)\n'
-        s += f'.. Count of infinities:\t{results["infinites"]}\t({results["infinites"] / results["trials"] * 100:.2f}%)\n'
-        s += f'.. Minimum reveals:\t{results["min"]}\n'
-        s += f'.. Maximum reveals:\t{results["max"]}\n'
-        s += f'.. Average alpha:\t{results["amean"]:.2f}\n'
-        s += f'.. Median alpha:\t{results["amedian"]:.2f}\n'
-        s += f'.. Minimum alpha:\t{results["amin"]:.2f}\n'
-        s += f'.. Maximum alpha:\t{results["amax"]:.2f}\n'
+        s += f'.. Trials:\t\t{len(self.results)} of {self.trials}\n'
+        s += f'.. Density:\t\t{self.rho}\n'
+        s += f'.. Cutoff:\t\t{self.cutoff}\n'
+        s += f'.. Safe Radius:\t\t{self.r}\n'
+        s += f'.. Average reveals:\t{mean}\t({mean / self.cutoff * 100:.2f}%)\n'
+        s += f'.. Minimum reveals:\t{min(self.results)}\n'
+        s += f'.. Maximum reveals:\t{max(self.results)}\n'
+        s += f'.. Average alpha:\t{amean:.2f}\n'
+        s += f'.. Minimum alpha:\t{min(self.alphas):.2f}\n'
+        s += f'.. Maximum alpha:\t{max(self.alphas):.2f}\n'
 
         return s
 
 
 # Used to reformat experimental results into a string
-def etostr(results):
+def etostr(meta):
 
-    s = 'Experiment results: valid density.\n' if not bool(results['infinite']) else 'Experiment results: INFINTIE.\n'
+    s = 'Experiment results: valid density.\n' if not bool(meta['infinite']) else 'Experiment results: INFINTIE.\n'
 
-    s += f'.. Trials:\t\t{results["trials"]} of {results["goal"]}\n'
-    s += f'.. Density:\t\t{results["rho"]}\n'
-    s += f'.. Growth Factor:  \t{results["alpha"]}\n'
-    s += f'.. Cutoff:\t\t{results["cutoff"]}\n'
-    s += f'.. Safe Radius:\t\t{results["safe"]}\n'
-    s += f'.. Average reveals:\t{results["mean"]}\t({float(results["mean"]) / float(results["cutoff"]) * 100:.2f}%)\n'
-    s += f'.. Median reveals: \t{results["median"]}\t({float(results["median"]) / float(results["cutoff"]) * 100:.2f}%)\n'
-    s += f'.. Count of infinities:\t{results["infinites"]}\t({float(results["infinites"]) / float(results["trials"]) * 100:.2f}%)\n'
-    s += f'.. Minimum reveals:\t{results["min"]}\n'
-    s += f'.. Maximum reveals:\t{results["max"]}\n'
-    s += f'.. Average alpha:\t{results["amean"]}\n'
-    s += f'.. Median alpha:\t{results["amedian"]}\n'
-    s += f'.. Minimum alpha:\t{results["amin"]}\n'
-    s += f'.. Maximum alpha:\t{results["amax"]}\n'
+    s += f'.. Trials:\t\t{meta["trials"]} of {meta["goal"]}\n'
+    s += f'.. Density:\t\t{meta["rho"]}\n'
+    s += f'.. Cutoff:\t\t{meta["cutoff"]}\n'
+    s += f'.. Safe Radius:\t\t{meta["d"]}\n'
+    s += f'.. Average reveals:\t{meta["mean"]}\t({float(meta["mean"]) / float(meta["cutoff"]) * 100:.2f}%)\n'
+    s += f'.. Minimum reveals:\t{meta["min"]}\n'
+    s += f'.. Maximum reveals:\t{meta["max"]}\n'
+    s += f'.. Average alpha:\t{meta["amean"]}\n'
+    s += f'.. Minimum alpha:\t{meta["amin"]}\n'
+    s += f'.. Maximum alpha:\t{meta["amax"]}\n'
 
     return s
