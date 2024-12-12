@@ -192,9 +192,9 @@ class CriticalDensity:
 
         if self.logdir:
             log(self.logdir, 'cdTimes', self.times)
-            log(self.logdir, 'cdRhos', self.rhos)
-            log(self.logdir, 'cdMesa', mesa)
-            log(self.logdir, 'cdMeta', meta)
+            log(self.logdir, 'cdRhos',  self.rhos)
+            log(self.logdir, 'cdMesas', self.mesas)
+            log(self.logdir, 'cdMetas', self.metas)
 
         # The equilibrium value
         return self.rho
