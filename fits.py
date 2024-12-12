@@ -21,3 +21,7 @@ def powerp1(x, a, b):
 def rationalp1(x, a, b):
     return a / (x + b) + 1
 
+
+# A function that starts at 0 and has a horizontal asymptote at 1
+def horizontal(x, a, b):
+    return a * x / (1 + b * x)
