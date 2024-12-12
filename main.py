@@ -18,6 +18,12 @@
 #   Cutoff      = 1e6
 #       rho_critical ~= 0.09929314020180824 mines/cell
 #
+# Another big sim, this time using a new strategy: approach the limit from infinity. (~33 hours)
+#   Experiments = 1e3 (completed in 106)
+#   Trials      = 25
+#   Cutoff      = 1e7
+#       rho_critical ~= 0.09605861250159327 mines/cell
+#
 # I reckon as cutoff -> inf, rho_critical -> decreases to true value at exponential decay.
 # As such, rho_c ~= 0.099 is likely very close to the true value.
 # Similarly, trials -> inf, rho_critical -> increases.
@@ -85,6 +91,34 @@
 # Well...linear fit has errors smaller than 5%, so it's linear with 95% confidence? At the very least,
 # the exponential decay is _very_ close to being exact.
 
+# Here's an alternative approach for finding critical density. Instead, we analyse the growth in terms of successive
+# frontiers and the difference in size between them. For a given rho, f_i >= f_(i-1) for it to sweep an infinite area;
+# if f_1 = f_(i-1) then it is exactly the critical density. f_i < f_(i-1) on average sweep a finite area.
+#
+# Here, I should be able to plot growth factors (alpha, where alpha = f_i / f_(i-1)) as a function of rho. This would
+# require me to restructure Minesweeper; currently Minesweeper sweeps using a fifo queue, or in other words it sweeps
+# cell-wise. I need it to sweep frontier-wise: in the first step, find all the unrevealed cells on the revealed border;
+# second, reveal all cells in the new frontier.
+# We can track this new frontier to find its average size and its growth factor. We should probably do large r to
+# prevent minimum reveals, which I suspect would skew the data.
+# Actually, we can still do this cell-wise. Rather than tracking the size of subsequent frontiers, we tracks the
+# average reveals per cell; less work to find.
+# Worrying results: it looks like there is no critical density. For an arbitrarily large number of trials, it
+# appears that any rho, or at least rho near 0.1, alpha can reach 1. Wait a minute, no that's perfectly fine: that's
+# merely an artifact of 'infinity' being a mere finite number. So we do care about a mean alpha, but how can
+# we find it with the arbitrary cutoff lowering the value?
+#
+# Here's the problem with these growth factors: as r -> inf, alpha -> 1 but from the right! The issue is that taking a mean
+# where 1 is the largest value but some non-negligible proportion will have some alpha < 0.5: the mean will never
+# reasonably be 1. Now, it could be that where my lens is, around rho = 0.1, could be far from the true critical density;
+# if rho_critical is, say, near 0.05, then the mean alpha may be a completely reasonable approach.
+# Perhaps performing some weighted mean using the distance to...using Guassian weights? Nah, didn't do much. Neither
+# inverse sum-of-least-squares or Guassian weights made much of a difference.
+# It turns out things get really tricky when you need to calcualate infinity.
+#
+# What the heckin' heck is the function that represents the alphas for various rhos graph? It approaches 1
+# but _every so slightly_ overshoots, so no true horizontal asymptote at 1.
+
 import critical
 from critical import CriticalDensity
 from experiment import Experiment
@@ -101,7 +135,7 @@ def CDFinder():
     experiments = int(1e3)
     #trials = int(1e2)
     trials = 25
-    cutoff = 1e6
+    cutoff = 1e8
     alpha = 0.8
     step = 0.05
     rho = 0
@@ -110,13 +144,13 @@ def CDFinder():
     r = 1
 
     finder_cutoff = 1e-5
-    lastn = 0
+    lastn = 10
 
     #stepper = critical.half_gradient
     stepper = critical.down_step
 
     logdir = None
-    logdir = 'custom'
+    logdir = f'eBottom{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
     #logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
     
 
@@ -147,15 +181,40 @@ def CDFinder():
 # Execution path to perform a single experiment
 def experiment():
 
-    performance = False
 
-    rho = 0.1
-    trials = int(1e4)
+    rho = 0
+    trials = int(5)
     cutoff = int(1e7)
     do_cutoff = False
-    r = 10
+    r = 1
 
-    logdir = f'{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
+    logdir = None
+    #logdir = f'custom'
+    #logdir = f'{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
+
+
+    exp = Experiment(rho, cutoff, trials, do_cutoff, r, logdir = logdir)
+
+    start = time()
+    exp.begin(quiet = True)
+    end = time()
+
+    print(exp)
+    print(f'.. Time taken:\t\t{end - start:.4f}s')
+
+
+
+def experiments():
+    performance = False
+
+    rho = 0
+    trials = 1
+    #cutoff = int(1e8)
+    do_cutoff = False
+    r = 0
+
+    logdir = f'MaxAlphas/'
+    #logdir = f'{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
 
 
     if performance:
@@ -166,16 +225,24 @@ def experiment():
         logdir = None
 
 
-    exp = Experiment(rho, cutoff, trials, do_cutoff, r, logdir = logdir)
+    for experiment in range(50):
 
-    start = time()
-    exp.begin(quiet = False)
-    end = time()
+        # Increasing radius
+        cutoff = (2 * experiment + 1) ** 2
 
-    print(exp)
-    print(f'.. Time taken:\t\t{end - start:.4f}s')
+        subdir = f'{experiment:d}'
+
+        exp = Experiment(rho, cutoff, trials, do_cutoff, r, logdir = logdir + subdir)
+
+        start = time()
+        exp.begin(quiet = False)
+        end = time()
+
+        print(exp)
+        print(f'.. Time taken:\t\t{end - start:.4f}s')
 
 
 
-CDFinder()
+#CDFinder()
 #experiment()
+experiments()
