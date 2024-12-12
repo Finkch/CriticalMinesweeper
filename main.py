@@ -131,7 +131,6 @@ from numpy import arange
 # Execution path to hone in on a value for rho_critical
 def CDFinder():
 
-    performance = False
     quiet = False
     
     experiments = int(1e3)
@@ -154,24 +153,7 @@ def CDFinder():
     logdir = None
     logdir = f'eBottom{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
     #logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
-    
 
-    if performance:
-        experiments = 10
-        trials = 100
-        cutoff = 10000
-        rho = 0.05
-        step = 0
-        do_cutoff = False
-        logdir = None
-
-
-    #for i in range(10):
-
-    #print(f'\nStarting CDFinder run {i + 1} with safe zone r = {i}')
-
-    #r = i
-    #logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
 
     finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, r, step, alpha, lastn, finder_cutoff, stepper, logdir = logdir)
 
