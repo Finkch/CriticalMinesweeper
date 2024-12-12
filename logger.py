@@ -4,6 +4,7 @@
 
 import os
 import csv
+import json
 
 # Logs data from an experiment
 def log(dir: str, file: str, results: list | dict) -> None:
@@ -36,56 +37,51 @@ def unlog(path: str):
         match file:
 
             # Experiment results
-            case 'fulle.csv':
+            case 'expMesa.csv':
                 with open(f'{path}/{file}') as f:
-                    results['fulle'] = [int(line.strip()) for line in f]
+                    reader = csv.reader(f)
+                    results['expMesa'] = [json.loads(line[0]) for line in reader]
 
-            case 'alphase.csv':
-                with open(f'{path}/{file}') as f:
-                    results['alphase'] = [float(line.strip()) for line in f]
-
-            case 'compressede.csv':
-                results['compressede'] = {}
-                
+            case 'expMeta.csv':
+                results['expMeta'] = {}
                 with open(f'{path}/{file}') as f:
                     for line in f:
                         kv = line.split(':')
-                        results['compressede'][kv[0]] = kv[1].strip()
+                        results['expMeta'][kv[0]] = kv[1].strip()
             
 
 
             # CD Finder results
-            case 'fullc.csv':
-                results['fullc'] = []
+            case 'cdMesas.csv':
+                results['cdMesas'] = []
                 with open(f'{path}/{file}') as f:
                     for line in f:
-                        splits = line.split(',')
-                        results['fullc'].append([split for split in splits])
-            
-            case 'alphasc.csv':
-                results['alphasc'] = []
-                with open(f'{path}/{file}') as f:
-                    for line in f:
-                        splits = line.split(',')
-                        results['alphasc'].append([split for split in splits])
+                        results['cdMesas'].append([])
+                        line = line.strip().replace('[', '').replace('"', '').replace(']]', '').replace(' ', '')
+                        splits = line.split('],')
 
-            case 'compressedc.csv':
-                results['compressedc'] = []
+                        for split in splits:
+                            subsplits = split.split(',')
+                            results['cdMesas'][-1].append([int(subsplits[0]), float(subsplits[1])])
+
+
+            case 'cdMetas.csv':
+                results['cdMetas'] = []
                 with open(f'{path}/{file}') as f:
                     for line in f:
-                        results['compressedc'].append({})
+                        results['cdMetas'].append({})
                         splits = line.split(',')
                         for split in splits:
                             kv = split.split(':')
-                            results['compressedc'][-1][kv[0]] = kv[1].strip()
+                            results['cdMetas'][-1][kv[0]] = kv[1].strip()
             
-            case 'rhosc.csv':
+            case 'cdRhos.csv':
                 with open(f'{path}/{file}') as f:
-                    results['rhosc'] = [float(line.strip()) for line in f]
+                    results['cdRhos'] = [float(line.strip()) for line in f]
 
-            case 'timesc.csv':
+            case 'cdTimes.csv':
                 with open(f'{path}/{file}') as f:
-                    results['timesc'] = [float(line.strip()) for line in f]
+                    results['cdTimes'] = [float(line.strip()) for line in f]
 
             case '.DS_Store':
                 pass # Stupid, smelly .DS_Store!
