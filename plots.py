@@ -33,13 +33,16 @@ def histogram():
     results = unlog(f'Results/{dir}')
 
     # Performs a printout of the parameters
-    if 'compressede' in results:
-        print(etostr(results['compressede']))
-    elif 'compressedc' in results:  # Prints first and last
-        print(etostr(results['compressedc'][0]))
-        print(etostr(results['compressedc'][-1]))
+    if 'expMeta' in results:
+        print(etostr(results['expMeta']))
+    elif 'cdMetas' in results:  # Prints first and last
+        print(etostr(results['cdMetas'][0]))
+        print(etostr(results['cdMetas'][-1]))
 
-    graph.histogram(results)
+    graph.histogram(
+        reveals = results['expReveals'],
+        params = results['expMeta']
+    )
 
 
 # Compares the critical density for starting areas of differing radius
@@ -55,17 +58,15 @@ def is_start_rho():
     # Unlogs each
     exps = [unlog(f'{dir}/{exp}') for exp in dirs if exp != '.DS_Store']
 
-    # Grabs the results we care about.
-    # That is the final value found, i.e. the CD Finder's found CD
-    results = {i: exps[i]['rhosc'][-1] for i in range(len(exps))}
-
     # Shows that CD and initial starting area are unrelated
-    graph.show_is_start_rho(results)
+    graph.show_is_start_rho(
+        rhos = {i: exps[i]['cdRhos'][-1] for i in range(len(exps))}
+    )
 
 # Compares the growth factor, alpha, for various rhos
 def alphas():
     
-    dir = 'Alphas'
+    dir = 'CoarseAlphas'
 
     dir = f'Results/{dir}'
 
@@ -74,7 +75,11 @@ def alphas():
     # Grabs each experiment
     exps = [unlog(f'{dir}/{exp}') for exp in dirs if exp != '.DS_Store']
 
-    graph.show_alphas(exps)
+    graph.show_alphas(
+        reveals = exps['expReveals'],
+        alphas = exps['expAlphas'],
+        rhos = [float(exp['expMeta']['rho']) for exp in exps]
+    )
 
 # Shows how alpha is proportional to the cutoff.
 # The smaller the cutoff, the larger the alpha.
@@ -90,11 +95,10 @@ def max_alphas():
     # Grabs each experiment
     results = [unlog(f'{dir}/{exp}') for exp in dirs if exp != '.DS_Store']
 
-    # Grabs relevant information
-    alphas = [exp['alphase'][0] for exp in results]
-    cutoffs = [float(exp['compressede']['cutoff']) for exp in results]
-
-    graph.show_max_alphas(alphas, cutoffs)
+    graph.show_max_alphas(
+        alphas = [max(alphas) for alphas in results['expAlphas']], 
+        cutoffs = [float(meta['expMeta']['cutoff']) for meta in results]
+    )
 
     
 
@@ -102,5 +106,5 @@ def max_alphas():
 #see_ms()
 #histogram()
 #is_start_rho()
-#alphas()
-max_alphas()
+alphas()
+#max_alphas()

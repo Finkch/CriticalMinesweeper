@@ -37,10 +37,15 @@ def unlog(path: str):
         match file:
 
             # Experiment results
-            case 'expMesa.csv':
+            case 'expReveals.csv':
                 with open(f'{path}/{file}') as f:
                     reader = csv.reader(f)
-                    results['expMesa'] = [json.loads(line[0]) for line in reader]
+                    results['expReveals'] = [int(line) for line in reader]
+
+            case 'expAlphas.csv':
+                with open(f'{path}/{file}') as f:
+                    reader = csv.reader(f)
+                    results['expAlphas'] = [float(line) for line in reader]
 
             case 'expMeta.csv':
                 results['expMeta'] = {}
@@ -52,17 +57,19 @@ def unlog(path: str):
 
 
             # CD Finder results
-            case 'cdMesas.csv':
-                results['cdMesas'] = []
+            case 'cdReveals.csv':
+                results['cdReveals'] = []
                 with open(f'{path}/{file}') as f:
                     for line in f:
-                        results['cdMesas'].append([])
-                        line = line.strip().replace('[', '').replace('"', '').replace(']]', '').replace(' ', '')
-                        splits = line.split('],')
-
-                        for split in splits:
-                            subsplits = split.split(',')
-                            results['cdMesas'][-1].append([int(subsplits[0]), float(subsplits[1])])
+                        splits = line.split(',')
+                        results['cdReveals'].append([int(split.strip()) for split in splits])
+            
+            case 'cdAlphas.csv':
+                results['cdAlphas'] = []
+                with open(f'{path}/{file}') as f:
+                    for line in f:
+                        splits = line.split(',')
+                        results['cdAlphas'].append([float(split.strip()) for split in splits])
 
 
             case 'cdMetas.csv':

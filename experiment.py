@@ -64,7 +64,8 @@ class Experiment:
     def process(self) -> dict:
 
         # A list of experimentally determined reveals, alphas packed together
-        mesa = [[self.results[i], self.alphas[i]] for i in range(len(self.results))]
+        reveals = self.results
+        alphas = self.alphas
 
         # Metadata of the experimental parameters
         meta = {
@@ -84,10 +85,11 @@ class Experiment:
 
         # Logs the experiment
         if self.logdir:
-            log(self.logdir, 'expMesa', mesa)
+            log(self.logdir, 'expReveals', reveals)
+            log(self.logdir, 'expAlphas', alphas)
             log(self.logdir, 'expMeta', meta)
 
-        return mesa, meta
+        return reveals, alphas, meta
 
 
     def __str__(self) -> str:

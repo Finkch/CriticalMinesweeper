@@ -12,13 +12,13 @@ from logger import log
 
 
 # Do nothing
-def stasis(self, mesa: dict, meta: dict) -> tuple[float]:
+def stasis(self, meta: dict) -> tuple[float]:
     return self.rho, 0, 0, 1
 
 # The default.
 #   Step up based on how close max was to cutoff.
 #   Step down based on how few trials before the cutoff.
-def half_gradient(self, mesa: dict, meta: dict) -> tuple[float]:
+def half_gradient(self, meta: dict) -> tuple[float]:
     
     # Determines the step size
     if meta['infinite']:
@@ -33,7 +33,7 @@ def half_gradient(self, mesa: dict, meta: dict) -> tuple[float]:
         # The closer to infinite, the smaller the change.
         # Negative value since we want rho to decrease
         # I'll need to play around with this one
-        s = max(mesa, key = lambda x: x[0])[0] / meta['cutoff'] - 1
+        s = meta['max'] / meta['cutoff'] - 1
 
     # Updates density
     delta = s * self.step
@@ -48,7 +48,7 @@ def half_gradient(self, mesa: dict, meta: dict) -> tuple[float]:
 # This function starts in the infinite case and walks down to CD. Works best with LARGE cutoff
 #   Step up never. If exp is non-infinute, do no step and return to previous state but with a smaller step.
 #   Step down when trial was infinute. Do not decrease step size.
-def down_step(self, mesa: dict, meta: dict) -> tuple[float]:
+def down_step(self, meta: dict) -> tuple[float]:
     
     # Used to step back
     if not hasattr(self, 'previous_rho'):
@@ -135,7 +135,8 @@ class CriticalDensity:
 
 
         # A list of experimental results
-        self.mesas = []
+        self.reveals = []
+        self.alphas = []
         self.metas = []
         self.times = []
         self.rhos = []
@@ -164,17 +165,18 @@ class CriticalDensity:
 
             # Runs the experiment
             start = time()
-            mesa, meta = exp.begin()
+            reveals, alphas, meta = exp.begin()
             end = time()
 
             # Adds the experiment's results
-            self.mesas.append(mesa)
+            self.reveals.append(reveals)
+            self.alphas.append(alphas)
             self.metas.append(meta)
             self.times.append(end - start)
             self.rhos.append(self.rho)
 
             # Calculates what the next rho should be
-            nrho, delta, nstep, s = self.stepper(self, mesa, meta)
+            nrho, delta, nstep, s = self.stepper(self, meta)
 
 
             # Prints experiment results
@@ -193,7 +195,8 @@ class CriticalDensity:
         if self.logdir:
             log(self.logdir, 'cdTimes', self.times)
             log(self.logdir, 'cdRhos',  self.rhos)
-            log(self.logdir, 'cdMesas', self.mesas)
+            log(self.logdir, 'cdReveals', self.reveals)
+            log(self.logdir, 'cdAlphas', self.alphas)
             log(self.logdir, 'cdMetas', self.metas)
 
         # The equilibrium value
