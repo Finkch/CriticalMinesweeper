@@ -126,6 +126,8 @@ from experiment import Experiment
 from time import time
 from math import floor, log10
 
+from numpy import arange
+
 # Execution path to hone in on a value for rho_critical
 def CDFinder():
 
@@ -156,10 +158,12 @@ def CDFinder():
 
     if performance:
         experiments = 10
+        trials = 100
+        cutoff = 10000
         rho = 0.05
         step = 0
-        cutoff = 1e4
         do_cutoff = False
+        logdir = None
 
 
     #for i in range(10):
@@ -169,7 +173,7 @@ def CDFinder():
     #r = i
     #logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
 
-    finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, r, step, alpha, lastn, finder_cutoff, stepper, compress = False, logdir = logdir)
+    finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, r, step, alpha, lastn, finder_cutoff, stepper, logdir = logdir)
 
     rho_critical = finder.find(quiet)
 
@@ -182,21 +186,21 @@ def CDFinder():
 def experiment():
 
 
-    rho = 0
-    trials = int(5)
-    cutoff = int(1e7)
+    rho = 0.15
+    trials = int(1e3)
+    cutoff = int(1e4)
     do_cutoff = False
     r = 1
 
-    logdir = None
-    #logdir = f'custom'
+    #logdir = None
+    logdir = f'expCustom'
     #logdir = f'{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
 
 
     exp = Experiment(rho, cutoff, trials, do_cutoff, r, logdir = logdir)
 
     start = time()
-    exp.begin(quiet = True)
+    exp.begin(quiet = False)
     end = time()
 
     print(exp)
@@ -205,32 +209,26 @@ def experiment():
 
 
 def experiments():
-    performance = False
 
     rho = 0
-    trials = 1
-    #cutoff = int(1e8)
+    trials = int(1e3)
+    cutoff = int(1e5)
     do_cutoff = False
-    r = 0
+    r = 3
 
-    logdir = f'MaxAlphas/'
-    #logdir = f'{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
+    logdir = f'CoarseAlphas/'
 
-
-    if performance:
-        trials = 100
-        rho = 0.05
-        cutoff = 1e4
-        do_cutoff = False
-        logdir = None
+    data = arange(0, 0.3, 0.01)
 
 
-    for experiment in range(50):
 
-        # Increasing radius
-        cutoff = (2 * experiment + 1) ** 2
+    for datum in data:
 
-        subdir = f'{experiment:d}'
+        # Independent variable
+        rho = datum
+
+        # New subdir for the experiment
+        subdir = f'{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
 
         exp = Experiment(rho, cutoff, trials, do_cutoff, r, logdir = logdir + subdir)
 
@@ -242,7 +240,32 @@ def experiments():
         print(f'.. Time taken:\t\t{end - start:.4f}s')
 
 
+# A normalised set of CD Finder to check execution times
+def performance():
+
+    experiments = 10
+    trials = 100
+    cutoff = 10000
+    rho = 0.05
+    step = 0
+    do_cutoff = False
+
+    r = 1
+    alpha = 0
+    lastn = 0
+    finder_cutoff = 1e-42
+    stepper = critical.stasis
+
+
+    finder = CriticalDensity(experiments, trials, rho, cutoff, do_cutoff, r, step, alpha, lastn, finder_cutoff, stepper, logdir = None)
+
+    rho_critical = finder.find(quiet = False)
+
+    print(finder.str_time())
+
+
 
 #CDFinder()
 #experiment()
-experiments()
+#experiments()
+performance()
