@@ -40,12 +40,12 @@ def unlog(path: str):
             case 'expReveals.csv':
                 with open(f'{path}/{file}') as f:
                     reader = csv.reader(f)
-                    results['expReveals'] = [int(line) for line in reader]
+                    results['expReveals'] = [int(line[0]) for line in reader]
 
             case 'expAlphas.csv':
                 with open(f'{path}/{file}') as f:
                     reader = csv.reader(f)
-                    results['expAlphas'] = [float(line) for line in reader]
+                    results['expAlphas'] = [float(line[0]) for line in reader]
 
             case 'expMeta.csv':
                 results['expMeta'] = {}
