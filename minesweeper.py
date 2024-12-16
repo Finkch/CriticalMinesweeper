@@ -381,4 +381,9 @@ class Minesweeper:
 # .. Median time:         5.9258s
 # .. Minimum time:        5.8797s
 # .. Maximum time:        5.9788s
-
+#
+# Okay, new benchmark after a few necessary bells and whistles have been added
+# .. Mean time:           6.1752s
+# .. Median time:         6.1803s
+# .. Minimum time:        6.2780s
+# .. Maximum time:        6.0722s
