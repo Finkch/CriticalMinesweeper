@@ -3,10 +3,12 @@
 
 from experiment import etostr
 from minesweeper import Minesweeper
+from minesweeperp import minesweeper as minesweeperp
 
 import graph
 from logger import unlog
-from visualise import visualise, pygame_init
+#from visualise import visualise, pygame_init
+from visualise import visualise
 
 import os
 import numpy as np
@@ -16,12 +18,15 @@ import numpy as np
 def see_ms():
 
     rho = 0.1
-    cutoff = 1000
+    cutoff = 10000
+    s = 2
 
     ms = Minesweeper(rho, cutoff, True)
     ms.sweep()
 
-    pygame_init()
+    #_, ms = minesweeperp(rho, s, cutoff ** 0.5, visualise = True)
+
+    # pygame_init()
     visualise(ms)
 
 # Draws a histogram of reveals at a given density
@@ -66,7 +71,7 @@ def is_start_rho():
 # Compares the growth factor, alpha, for various rhos
 def alphas():
     
-    dir = 'CoarseAlphas'
+    dir = 'SmallCoarseAlphas'
 
     dir = f'Results/{dir}'
 
@@ -76,8 +81,8 @@ def alphas():
     exps = [unlog(f'{dir}/{exp}') for exp in dirs if exp != '.DS_Store']
 
     graph.show_alphas(
-        reveals = exps['expReveals'],
-        alphas = exps['expAlphas'],
+        reveals = [exp['expReveals'] for exp in exps],
+        alphas = [exp['expAlphas'] for exp in exps],
         rhos = [float(exp['expMeta']['rho']) for exp in exps]
     )
 
