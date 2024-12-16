@@ -27,10 +27,9 @@ def sigfigs(x, u):
 
 # Plots a histogram of all trials.
 # Only really makes sense is rho_critical is constant over experiments
-def histogram(exp_results: dict):
+def histogram(reveals: dict, params: dict):
 
-    results = exp_results['fulle']
-    params  = exp_results['compressede']
+    results = reveals
 
     #cutoff = int(params['cutoff'])
     cutoff = results[-1]
@@ -136,14 +135,24 @@ def show_is_start_rho(results: dict):
     plt.show()
 
 
-def show_alphas(exps: list):
-    
-    # Grabs relevant data
-    alphas = [exp['alphase'] for exp in exps]
-    rhos = [float(exp['compressede']['rho']) for exp in exps]
+def show_alphas(reveals, alphas, rhos):
 
     # Packeges key results together so they can be sorted
-    results = sorted([[alphas[i], rhos[i]] for i in range(len(alphas))], key = lambda x: x[1])
+    results = sorted([[reveals[i], alphas[i], rhos[i]] for i in range(len(alphas))], key = lambda x: x[2])
+
+    # Trims results
+    #results = [results[i] for i in range(len(results)) if i % 20 == 0]
+    nrs = []
+    for result in results:
+        si = [i for i in range(len(result[0])) if result[1][i] > 1]
+
+        nrs.append([
+            [result[0][i] for i in si],
+            [result[1][i] for i in si],
+            result[2]]
+        )
+
+    results = nrs
 
     infinities = []
 
@@ -153,9 +162,11 @@ def show_alphas(exps: list):
     # Creates a scatter plot of growth factors for each rho
     for i in range(len(results)):
         ax.scatter(
-            [j / len(results[i][0]) for j in range(len(results[i][0]))],
+            #[j for j in range(len(results[i][1]))],
+            #sorted(results[i][1]),
             results[i][0],
-            label = r'${\rho}$ = ' + f'{results[i][1]:.3f}'
+            results[i][1],
+            label = r'${\rho}$ = ' + f'{results[i][2]:.3f}'
         )
 
         # Gets a list of the earliest infinites
@@ -166,73 +177,25 @@ def show_alphas(exps: list):
 
 
     # Shows where each goes infinite
-    sx = [inf[0] for inf in infinities]
-    sy = [1 for inf in infinities]
-    ax.scatter(sx, sy, color = 'black', marker = 'x')
+    #sx = [inf[0] for inf in infinities]
+    #sy = [1 for inf in infinities]
+    #ax.scatter(sx, sy, color = 'black', marker = 'x')
 
 
     # Performs a curve fit
     fits, covs, uncs = {}, {}, {}
 
-    for result in results:
-
-        guess = (1 / result[1], 1 / result[1])
-
-        fit, cov = curve_fit(
-            horizontal,
-            [j / len(result[0]) for j in range(len(result[0]))],
-            result[0],
-            guess
-        )
-
-        fits[result[1]] = fit
-        covs[result[1]] = cov
-        uncs[result[1]] = np.sqrt(np.diag(cov))
-
-
-    # Plots each of the guesses
-    x = np.arange(0, 1, 0.01)
-    for fit in fits:
-        y = [horizontal(xi, *fits[fit]) for xi in x]
-
-        #ax.plot(x, y, color = 'black')
-
-        #print(f'Best fit for {fit}:\n.. a: {sigfigs(fits[fit][0], uncs[fit][0])}\n.. b: {sigfigs(fits[fit][1], uncs[fit][1])}\n')
 
     # Shows labels
     ax.set_xlabel(r'P(${\alpha} {\leq}$ X)')
     ax.set_ylabel(r'growth factor ${\alpha}$ (unitless)')
 
+    ax.axhline(y = 1, color = 'black', linestyle = '-') 
+
     #ax.set_yscale('log')
-    #ax.set_xscale('log')
+    ax.set_xscale('log')
 
     ax.legend(loc = 'lower right')
-
-
-    # Shows the average of each
-    for result in results:
-
-        alphas = result[0]
-        rho = result[1]
-
-        mean = sum(alphas) / len(alphas)
-        mini = min(alphas)
-        maxi = max(alphas)
-
-        var = np.var(alphas)
-
-
-        weights = [np.e ** (-((alpha - mean)) ** 2 / 2 / var) for alpha in alphas]
-        wmean = sum([weights[i] * alphas[i] for i in range(len(alphas))]) / sum(weights)
-
-        print(r'For ${\rho}$ = ' + f'{rho:.3f}:')
-        print(f'Mean:\t{mean:.4f}')
-        print(f'Mini:\t{mini:.4f}')
-        print(f'Maxi:\t{maxi:.4f}')
-        print(f'w-Mean:\t{wmean:.4f}')
-        print()
-        
-
 
 
     plt.show()
