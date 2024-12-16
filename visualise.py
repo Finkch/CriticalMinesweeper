@@ -5,7 +5,7 @@ import pygame
 WS = 500
 
 # Grid cells visible in a row/column
-ZOOM = 20
+ZOOM = 50
 OOB = ZOOM // 2
 
 CELL_SIZE = WS // ZOOM
@@ -20,12 +20,12 @@ LGREY = (150, 150, 150)
 screen = None
 font = None
 
-def pygame_init():
-    pygame.init()
-    screen = pygame.display.set_mode((WS, WS))
-    pygame.display.set_caption("Critical Minesweeper")
+# def pygame_init():
+pygame.init()
+screen = pygame.display.set_mode((WS, WS))
+pygame.display.set_caption("Critical Minesweeper")
 
-    font = pygame.font.Font(None, 18)  # None for default font, 36 for size
+font = pygame.font.Font(None, 18)  # None for default font, 36 for size
 
 
 def see(minesweeper, index):
@@ -54,6 +54,67 @@ def see(minesweeper, index):
     # Update the display
     pygame.display.flip()
 
+
+# tensors = (
+#       mineless, 
+#       frontiers, 
+#       unrevealeds, 
+#       zeroess
+#   )
+def seep(tensors, index):
+
+    mines       = tensors[0]
+    frontiers   = tensors[1]
+    unrevealeds = tensors[2]
+    zeroess     = tensors[3]
+    
+    c = len(tensors[0]) // 2
+
+    for i in range(-OOB, OOB + 1):
+        for j in range(-OOB, OOB + 1):
+
+            #print(f's({i}, {j}) -> b({c - i}, {c - j})')
+            
+            if mines[c - i][c - j]:
+                pygame.draw.rect(
+                    screen,
+                    RED,
+                    (i * CELL_SIZE + OOB * CELL_SIZE, j * CELL_SIZE + OOB * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                )
+            elif not zeroess[index][c - i][c - j]:
+                pygame.draw.rect(
+                    screen,
+                    BLACK,
+                    (i * CELL_SIZE + OOB * CELL_SIZE, j * CELL_SIZE + OOB * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                )
+            elif frontiers[index][c - i][c - j]:
+                pygame.draw.rect(
+                    screen,
+                    WHITE,
+                    (i * CELL_SIZE + OOB * CELL_SIZE, j * CELL_SIZE + OOB * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                )
+            elif not unrevealeds[index][c - i][c - j]:
+                pygame.draw.rect(
+                    screen,
+                    LGREY,
+                    (i * CELL_SIZE + OOB * CELL_SIZE, j * CELL_SIZE + OOB * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                )
+            else:
+                pygame.draw.rect(
+                    screen,
+                    DGREY,
+                    (i * CELL_SIZE + OOB * CELL_SIZE, j * CELL_SIZE + OOB * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                )
+            
+            # Draws a border around the cell
+            pygame.draw.rect(
+                    screen,
+                    BLACK,
+                    (i * CELL_SIZE + OOB * CELL_SIZE, j * CELL_SIZE + OOB * CELL_SIZE, CELL_SIZE, CELL_SIZE),
+                    1  # Border thickness
+                )
+
+    pygame.display.flip()
 
 # Draws a cell
 def draw(grid, pos, colour = None):
@@ -106,9 +167,15 @@ def visualise(minesweeper):
                 running = False
 
 
-            index = keys(event, len(minesweeper.cells), index)
+            if isinstance(minesweeper, tuple):
+                index = keys(event, len(minesweeper[1]), index)
+            else:
+                index = keys(event, len(minesweeper.cells), index)
 
-        see(minesweeper, index)
+        if isinstance(minesweeper, tuple):
+            seep(minesweeper, index)
+        else:
+            see(minesweeper, index)
         #pygame.display.flip()  # Update the display
 
 # Function to handle navigation
