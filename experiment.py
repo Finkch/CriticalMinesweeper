@@ -1,6 +1,7 @@
 # Experiment is a series of trials at a given density
 
-from minesweeper import Minesweeper
+#from minesweeper import Minesweeper
+from minesweeperp import minesweeper
 
 from math import ceil
 
@@ -35,17 +36,16 @@ class Experiment:
         for trial in range(self.trials):
 
             # Creates new board
-            board = Minesweeper(self.rho, self.cutoff, self.r)
+            #board = Minesweeper(self.rho, self.cutoff, self.r)
 
             # Runs a trial
-            alpha = board.sweep()
+            reveals = minesweeper(self.rho, self.r, self.cutoff ** 0.5)
 
             # Appends the results
-            self.results.append(board.reveals)
-            self.alphas.append(alpha)
+            self.results.append(reveals)
 
             # Stops the experiment if a board ever goes infinite
-            if board.reveals >= self.cutoff and self.do_cutoff:
+            if reveals >= self.cutoff and self.do_cutoff:
                 break
 
             if not quiet and self.trials // 10 > 0 and trial % (self.trials // 10) == 0:
@@ -77,16 +77,16 @@ class Experiment:
             'max':      max(self.results),
             'min':      min(self.results),
             'mean':     sum(self.results) / len(self.results),
-            'amin':     min(self.alphas),
-            'amax':     max(self.alphas),
-            'amean':    sum(self.alphas) / len(self.alphas),
+            # 'amin':     min(self.alphas),
+            # 'amax':     max(self.alphas),
+            # 'amean':    sum(self.alphas) / len(self.alphas),
             'infinite': max(self.results) == self.cutoff
         }
 
         # Logs the experiment
         if self.logdir:
             log(self.logdir, 'expReveals', reveals)
-            log(self.logdir, 'expAlphas', alphas)
+            # log(self.logdir, 'expAlphas', alphas)
             log(self.logdir, 'expMeta', meta)
 
         return reveals, alphas, meta
@@ -95,7 +95,7 @@ class Experiment:
     def __str__(self) -> str:
 
         mean = sum(self.results) / len(self.results)
-        amean = sum(self.alphas) / len(self.alphas)
+        #amean = sum(self.alphas) / len(self.alphas)
 
         s = 'Experiment results: valid density.\n' if max(self.results) < self.cutoff else 'Experiment results: INFINTIE.\n'
 
@@ -106,9 +106,9 @@ class Experiment:
         s += f'.. Average reveals:\t{mean}\t({mean / self.cutoff * 100:.2f}%)\n'
         s += f'.. Minimum reveals:\t{min(self.results)}\n'
         s += f'.. Maximum reveals:\t{max(self.results)}\n'
-        s += f'.. Average alpha:\t{amean:.2f}\n'
-        s += f'.. Minimum alpha:\t{min(self.alphas):.2f}\n'
-        s += f'.. Maximum alpha:\t{max(self.alphas):.2f}\n'
+        # s += f'.. Average alpha:\t{amean:.2f}\n'
+        # s += f'.. Minimum alpha:\t{min(self.alphas):.2f}\n'
+        # s += f'.. Maximum alpha:\t{max(self.alphas):.2f}\n'
 
         return s
 
