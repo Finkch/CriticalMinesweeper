@@ -118,6 +118,12 @@
 #
 # What the heckin' heck is the function that represents the alphas for various rhos graph? It approaches 1
 # but _every so slightly_ overshoots, so no true horizontal asymptote at 1.
+# Well, I realise what I had been plotting was useless. It's meaningless to plot alpha vs. trial. Alpha vs.
+# reveals is more telling, but the shape is independent of rho. That said, where on the curve points fall does
+# depend on rho; it's a curve that asymptotically approaches 1 and is only greater than 1 at the cutoff.
+#
+# So what are my next steps? Write a more performant Minesweeper simulation in a faster language and run some
+# higher order of magnitude calculations?
 
 import critical
 from critical import CriticalDensity
@@ -133,13 +139,13 @@ def CDFinder():
 
     quiet = False
     
-    experiments = int(1e3)
+    experiments = int(1e1)
     #trials = int(1e2)
-    trials = 25
-    cutoff = 1e8
+    trials = 100
+    cutoff = 1e2
     alpha = 0.8
-    step = 0.05
-    rho = 0
+    step = 0
+    rho = 0.15
     do_cutoff = True
     #do_cutoff = False
     r = 1
@@ -148,10 +154,10 @@ def CDFinder():
     lastn = 10
 
     #stepper = critical.half_gradient
-    stepper = critical.down_step
+    stepper = critical.half_gradient
 
-    logdir = None
-    logdir = f'eBottom{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
+    logdir = 'cdCustom'
+    #logdir = f'eBottom{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
     #logdir = f'e{floor(log10(experiments))}x{floor(log10(trials))}x{floor(log10(cutoff))}rho{str(rho).replace(".", "-")}r{r}'
 
 
@@ -168,8 +174,8 @@ def CDFinder():
 def experiment():
 
 
-    rho = 0.15
-    trials = int(1e3)
+    rho = 0.1
+    trials = int(1e4)
     cutoff = int(1e4)
     do_cutoff = False
     r = 1
@@ -189,20 +195,20 @@ def experiment():
     print(f'.. Time taken:\t\t{end - start:.4f}s')
 
 
-
 def experiments():
 
-    rho = 0
+    #rho = 0
     trials = int(1e3)
     cutoff = int(1e5)
     do_cutoff = False
-    r = 3
+    r = 1
 
-    logdir = f'CoarseAlphas/'
+    logdir = f'SmallCoarseAlphas/'
 
-    data = arange(0, 0.3, 0.01)
+    data = arange(0, 0.2, 0.02)
 
 
+    estart = time()
 
     for datum in data:
 
@@ -221,13 +227,16 @@ def experiments():
         print(exp)
         print(f'.. Time taken:\t\t{end - start:.4f}s')
 
+    eend = time()
+    print(f'\nTotal time taken:\n.. {eend - estart:.4f}')
+
 
 # A normalised set of CD Finder to check execution times
 def performance():
 
     experiments = 10
     trials = 100
-    cutoff = 10000
+    cutoff = 1000000
     rho = 0.05
     step = 0
     do_cutoff = False
@@ -248,6 +257,6 @@ def performance():
 
 
 #CDFinder()
-#experiment()
+experiment()
 #experiments()
-performance()
+#performance()
