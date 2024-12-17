@@ -75,7 +75,7 @@ def lnot(tensor: torch.Tensor) -> torch.Tensor:
 
 @torch.jit.script
 def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor, adj_kernal: torch.Tensor):
-    
+
     # Sweep until the frontier wave-front goes exctinct
     while frontier.any():
 
@@ -111,7 +111,7 @@ def experimentation(device):
     s = 1
     #d = 10000 ** 0.5
     #d = 10000
-    d = 1e2
+    d = 1e3
 
     times = []
 
@@ -137,35 +137,6 @@ def experimentation(device):
         print(f'.. Time taken      = {end - start:.4f}')
 
     return times
-
-exptimes = []
-
-# Sets up the device; we want the GPU
-device = torch.device("mps")
-
-print('     GPU tests')
-exptimes.append(experimentation(device))
-
-device = torch.device("cpu")
-
-print('     CPU tests')
-exptimes.append(experimentation(device))
-
-exptimes = exptimes[::-1]
-
-for i in range(len(exptimes)):
-
-    times = exptimes[i]
-
-    if i == 0:
-        print('#        CPU')
-    else:
-        print('#\n#        GPU')
-
-    print(f'# .. Total time:  {sum(times)}')
-    print(f'# .. Mean time:   {sum(times) / len(times)}')
-    print(f'# .. Min time:    {min(times)}')
-    print(f'# .. Max time:    {max(times)}')
 
 
 #   Experiemnts = 10
@@ -345,6 +316,9 @@ for i in range(len(exptimes)):
 # This seems to confirm my suspicions that each while loop sees the data being moved
 # back and forth. Why? Other than the loop condition, there should be no reason to have
 # in on the CPU; how can I keep it on the far side?
+#
+# Of course, if it's on the CPU, increasing max_r also really sucks beacuse it requires
+# d ** 2 operations per iterations, even when most of them are empty cells! Pah!
 
 # Script while loop as a whole
 #        CPU
@@ -372,3 +346,25 @@ for i in range(len(exptimes)):
 # .. Mean time:   3.256902885437012
 # .. Min time:    3.1360888481140137
 # .. Max time:    3.6079540252685547
+
+# Quick comparison between serial and parallel as cutoff increases.
+# Since we're stuck on the CPU, tensors become a worse choice as cutoff increases.
+# Oh! My expectation was proven wrong! I was thinking that the original method grew closer
+# to linearly whereas tensors were stuck at d^2; while that may still be the case, tensors are
+# still so blazingly fast that at these cutoffs they still easily outperform.
+#   Experiemnts = 10
+#   Trials      = 100
+#   Cutoff      = 1000000
+#   Density     = 0.05
+#
+#       Serial
+# .. Total time:          6371.8884s
+# .. Mean time:           637.1888s
+# .. Minimum time:        642.2508s
+# .. Maximum time:        638.5931s
+#
+#       Parallel
+# .. Total time:  1346.597899198532
+# .. Mean time:   134.6597899198532
+# .. Min time:    134.0677900314331
+# .. Max time:    135.1642129421234
