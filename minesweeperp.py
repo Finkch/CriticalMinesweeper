@@ -72,7 +72,7 @@ def lnot(tensor: torch.Tensor) -> torch.Tensor:
     return torch.logical_not(tensor)
 
 @torch.jit.script
-def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor, adj_kernal: torch.Tensor):
+def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor, adj_kernal: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
 
     # Used to track alpha.
     # Silly large tensor because script requires not-mutable data structures.
@@ -385,3 +385,11 @@ def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor
 # .. Median time:         0.3306s
 # .. Minimum time:        0.3819s
 # .. Maximum time:        0.2997s
+
+# Moving unrevealed->revealed into jit
+#       CPU
+# .. Total time:          3.2040s
+# .. Mean time:           0.3204s
+# .. Median time:         0.3116s
+# .. Minimum time:        0.3425s
+# .. Maximum time:        0.3179s
