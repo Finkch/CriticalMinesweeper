@@ -38,8 +38,7 @@ def minesweeper(rho: float, s: int, d: int, device: torch.device = None) -> list
 
 
     # Propogates while there is a frontier
-    unrevealed = sweep(frontier, unrevealed, zeroes, adj_kernal)
-
+    unrevealed, sizes = sweep(frontier, unrevealed, zeroes, adj_kernal)
 
     # To calculate number of reveals, first find revealed cells
     revealed = lnot(unrevealed)
@@ -55,7 +54,7 @@ def minesweeper(rho: float, s: int, d: int, device: torch.device = None) -> list
     reveals = torch.sum(revealed).item()
 
     # Return results
-    return reveals
+    return reveals, sizes
 
 
 # Precompiles tensor operations
@@ -76,8 +75,18 @@ def lnot(tensor: torch.Tensor) -> torch.Tensor:
 @torch.jit.script
 def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor, adj_kernal: torch.Tensor):
 
+    # Used to track alpha.
+    # Silly large tensor because script requires not-mutable data structures.
+    # And yes, this size of tensor is guaranteed to have sufficient space
+    sizes = torch.zeros(int(frontier.size()[0] ** 2 / 2), dtype = torch.int32, device = frontier.device)
+    i = 0
+
     # Sweep until the frontier wave-front goes exctinct
     while frontier.any():
+
+        # Adds 
+        sizes[i] = torch.sum(frontier).item()
+        i += 1
 
         # Updates revealed cells
         unrevealed ^= frontier
@@ -97,46 +106,15 @@ def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor
         # Equivalent to: frontier = neighbours & unrevealed & zeroes & ~mines
         frontier = neighbours & unrevealed & zeroes
 
-    return unrevealed
+
+    # Trims off all right-hand zeroes but the first.
+    # Guaranteed to be at least once since the 1d tensor is overkill-sized
+    sizes = sizes[ : (sizes == 0).nonzero()[0][0].item() + 1]
+
+    return unrevealed, sizes
 
 #       END Precompiled tensoro operations
 
-
-
-def experimentation(device):
-
-    experiments = 10
-    trials = 100
-    rho = 0.05
-    s = 1
-    #d = 10000 ** 0.5
-    #d = 10000
-    d = 1e3
-
-    times = []
-
-    for exp in range(experiments):
-
-        reveals = []
-
-        start = time()
-        for trial in range(trials):
-            reveals.append(minesweeper(rho, s, d, device))
-        end = time()
-
-        reveals.sort()
-        times.append(end - start)
-
-        print(f'\nExperiment {exp + 1} concluded.')
-        print(f'.. mean reveals    = {sum(reveals) / len(reveals)}')
-        print(f'.. median reveals  = {reveals[len(reveals) // 2]}')
-        print(f'.. min reveals     = {reveals[0]}')
-        print(f'.. max reveals     = {reveals[-1]}')
-        print(f'.. np              = {(d + 1) ** 2 * (1 - rho):.0f}')
-        print(f'.. max             = {(d + 1) ** 2:.0f}')
-        print(f'.. Time taken      = {end - start:.4f}')
-
-    return times
 
 
 #   Experiemnts = 10
@@ -368,3 +346,43 @@ def experimentation(device):
 # .. Mean time:   134.6597899198532
 # .. Min time:    134.0677900314331
 # .. Max time:    135.1642129421234
+
+# Back to the normal benchmark:
+#   Experiemnts = 10
+#   Trials      = 100
+#   Cutoff      = 10000
+#   Density     = 0.05
+#
+#       CPU
+#   Uh, whoops. Normal times about 0.24.
+
+# Tracking sizes of successive frontiers
+#       CPU
+# .. Total time:          3.1366s
+# .. Mean time:           0.3137s
+# .. Minimum time:        0.3322s
+# .. Maximum time:        0.3111s
+
+# Trimming sizes tensor
+#       CPU
+# .. Total time:          3.1811s
+# .. Mean time:           0.3181s
+# .. Median time:         0.3127s
+# .. Minimum time:        0.3572s
+# .. Maximum time:        0.3024s
+
+# Trimming within jit; removing "as_tuple"
+#       CPU
+# .. Total time:          3.1842s
+# .. Mean time:           0.3184s
+# .. Median time:         0.3142s
+# .. Minimum time:        0.3427s
+# .. Maximum time:        0.3081s
+
+# Removing saftey check of trimming (since there is guaranteed to be a zero)
+#       CPU
+# .. Total time:          3.1255s
+# .. Mean time:           0.3125s
+# .. Median time:         0.3306s
+# .. Minimum time:        0.3819s
+# .. Maximum time:        0.2997s
