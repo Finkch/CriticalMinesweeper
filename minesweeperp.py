@@ -4,7 +4,6 @@
 # However, likely due to Python being Python, it moves data between the device
 # and the CPU every iteration. This is very slow so we use the CPU instead of the GPU.
 
-from time import time
 import torch
 
 def minesweeper(rho: float, s: int, d: int, device: torch.device = None) -> list[float]:
