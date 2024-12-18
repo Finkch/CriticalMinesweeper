@@ -39,10 +39,11 @@ class Experiment:
             #board = Minesweeper(self.rho, self.cutoff, self.r)
 
             # Runs a trial
-            reveals = minesweeper(self.rho, self.r, self.cutoff ** 0.5)
+            reveals, sizes = minesweeper(self.rho, self.r, self.cutoff ** 0.5)
 
             # Appends the results
             self.results.append(reveals)
+            self.alphas.append(sizes.tolist())
 
             # Stops the experiment if a board ever goes infinite
             if reveals >= self.cutoff and self.do_cutoff:
@@ -77,17 +78,21 @@ class Experiment:
             'max':      max(self.results),
             'min':      min(self.results),
             'mean':     sum(self.results) / len(self.results),
-            # 'amin':     min(self.alphas),
-            # 'amax':     max(self.alphas),
-            # 'amean':    sum(self.alphas) / len(self.alphas),
             'infinite': max(self.results) == self.cutoff
         }
+
+        if len(alphas) > 0 and not isinstance(alphas[0], list):
+            meta['amin'] = min(self.alphas)
+            meta['amax'] = max(self.alphas)
+            meta['amean'] = sum(self.alphas) / len(self.alphas),
 
         # Logs the experiment
         if self.logdir:
             log(self.logdir, 'expReveals', reveals)
-            # log(self.logdir, 'expAlphas', alphas)
             log(self.logdir, 'expMeta', meta)
+
+            if len(alphas) > 0:
+                log(self.logdir, 'expAlphas', alphas)
 
         return reveals, alphas, meta
 
