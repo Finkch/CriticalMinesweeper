@@ -37,8 +37,7 @@ def minesweeper(rho: float, s: int, d: int, device: torch.device = None) -> list
 
 
     # Propogates while there is a frontier
-    #unrevealed, sizes = sweep(frontier, unrevealed, zeroes, adj_kernal)
-    unrevealed = sweep(frontier, unrevealed, zeroes, adj_kernal)
+    unrevealed, sizes = sweep(frontier, unrevealed, zeroes, adj_kernal)
 
     # To calculate number of reveals, first find revealed cells
     revealed = lnot(unrevealed)
@@ -54,14 +53,8 @@ def minesweeper(rho: float, s: int, d: int, device: torch.device = None) -> list
     reveals = torch.sum(revealed).item()
 
 
-    # Converts frontier sizes into a single alpha value
-    # ratios = sizes[:1] / sizes[:-1]
-    # alpha = torch.sum(ratios).item() / ratios.size()[0]
-
-
     # Return results
-    #return reveals, sizes
-    return reveals
+    return reveals, sizes
 
 
 # Precompiles tensor operations
@@ -80,20 +73,20 @@ def lnot(tensor: torch.Tensor) -> torch.Tensor:
     return torch.logical_not(tensor)
 
 @torch.jit.script
-def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor, adj_kernal: torch.Tensor) -> torch.Tensor:
+def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor, adj_kernal: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
 
     # Used to track alpha.
     # Silly large tensor because script requires not-mutable data structures.
     # And yes, this size of tensor is guaranteed to have sufficient space
-    # sizes = torch.zeros(int(frontier.size()[0] ** 2 / 2), dtype = torch.int32, device = frontier.device)
-    # i = 0
+    sizes = torch.zeros(int(frontier.size()[0] ** 2 / 2), dtype = torch.int32, device = frontier.device)
+    i = 0
 
     # Sweep until the frontier wave-front goes exctinct
     while frontier.any():
 
         # Adds 
-        # sizes[i] = torch.sum(frontier).item()
-        # i += 1
+        sizes[i] = torch.sum(frontier).item()
+        i += 1
 
         # Updates revealed cells
         unrevealed ^= frontier
@@ -115,11 +108,11 @@ def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor
 
 
     # Trims off all right-hand zeroes but the first.
-    # Guaranteed to be at least once since the 1d tensor is overkill-sized
-    # sizes = sizes[ : (sizes == 0).nonzero()[0][0].item() + 1]
+    # Guaranteed to be at least once since the 1d tensor is overkill-sized.
+    # Frankly, I don't know why we need to do tensor[0][0].item() - but hey, it works.
+    sizes = sizes[ : (sizes == 0).nonzero()[0][0].item() + 1]
 
-    # return unrevealed, sizes
-    return unrevealed
+    return unrevealed, sizes
 
 #       END Precompiled tensoro operations
 
