@@ -105,11 +105,26 @@ def max_alphas():
         cutoffs = [float(meta['expMeta']['cutoff']) for meta in results]
     )
 
+def frontiers():
+
+    dir = 'expFrontiers'
+
+    dir = f'Results/{dir}'
+
+    results = unlog(dir)
+
+    graph.show_frontiers(
+        frontiers   = [frontier for frontier in results['expAlphas']],
+        reveals     = [reveal for reveal in results['expReveals']],
+        meta        = results['expMeta']
+    )
+
     
 
 
 #see_ms()
 #histogram()
 #is_start_rho()
-alphas()
+#alphas()
 #max_alphas()
+frontiers()

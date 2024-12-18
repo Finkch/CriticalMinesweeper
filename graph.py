@@ -265,3 +265,66 @@ def show_max_alphas(alphas, cutoffs):
     ax.legend()
 
     plt.show()
+
+# Shows how a frontier behaves
+def show_frontiers(frontiers, reveals, meta):
+
+    # Successive differences, delta_f
+    deltaf = [[frontier[i + 1] - frontier[i] for i in range(len(frontier) - 1)] for frontier in frontiers]
+
+
+    # Calculates the mean delta_f for each trial.
+    # Casts into numpy array for easy statistics
+    deltaf_means = np.array([sum(delta) / len(delta) for delta in deltaf])
+    growth = deltaf_means.mean()
+    growth_unc = deltaf_means.std() / np.sqrt(len(deltaf_means))
+    print(f'\n\tAverage delta_f:\t{sigfigs(growth, growth_unc)}\n')
+
+
+    # Packs, sorts, and unpacks important lists.
+    # We do this so we can plot the same set of data readably.
+    # The sort + slice shows evenly spaced (in iteration space) (thus, hopefully representative) trials
+    packed = sorted(
+        [(frontiers[i], deltaf[i]) for i in range(len(frontiers))], # Packes together data
+        key = lambda x: len(x[0]),                                  # Sorts based on iterations to die out
+        reverse = True                                              # Plot biggest first, so it doesn't overshadow
+    )[:: len(frontiers) // 5]                                       # Slices to get evenly spaced
+
+    # Unpacks data again
+    frontiers = [tup[0] for tup in packed]
+    deltaf = [tup[1] for tup in packed]
+
+
+    # prepares to plot
+    fig, axes = plt.subplots(2)
+
+    # Frontier sizes.
+    # If |f| -> 0, it dies out.
+    # Plots in reverse 
+    for frontier in frontiers:
+        axes[0].plot(
+            [i for i in range(len(frontier))],
+            frontier,
+            label = u'$f_{max}$' + f' = {max(frontier)}'
+        )
+    axes[0].set_xlabel('frontier index, i (unitless)')
+    axes[0].set_ylabel('frontier size, |f| (unitless)')
+
+    # Shows the change in successive frontier sizes
+    for delta in deltaf:
+        axes[1].plot(
+            [i for i in range(len(delta))],
+            delta,
+            label = u'mean $\delta$' + f' = {sum(delta) / len(delta):.4f}'
+        )
+    axes[1].set_xlabel('frontier index, i (unitless)')
+    axes[1].set_ylabel(u'$\delta_f$ (unitless)')
+
+    axes[0].legend()
+    axes[1].legend()
+
+    plt.show()
+
+
+def printout(arr, title):
+    print(f'{title}:\n.. Mean:\t{sum(arr) / len(arr)}\n.. Median:\t{sorted(arr)[len(arr) // 2]}\n.. Min:\t\t{min(arr)}\n.. Max:\t\t{max(arr)}\n')
