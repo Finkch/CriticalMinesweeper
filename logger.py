@@ -45,7 +45,17 @@ def unlog(path: str):
             case 'expAlphas.csv':
                 with open(f'{path}/{file}') as f:
                     reader = csv.reader(f)
-                    results['expAlphas'] = [float(line[0]) for line in reader]
+
+                    # Regular alpha value
+                    try:
+                        results['expAlphas'] = [float(line[0]) for line in reader]
+
+                    # Lists of successive frontier sizes
+                    except:
+                        results['expAlphas'] = []
+                        for line in reader:
+                            splits = line[0].replace('[', '').replace(']', '').split(', ')
+                            results['expAlphas'].append([int(frontier) for frontier in splits])
 
             case 'expMeta.csv':
                 results['expMeta'] = {}
