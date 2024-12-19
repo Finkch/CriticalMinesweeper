@@ -149,7 +149,12 @@ def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor
     # Guaranteed to be at least once since the 1d tensor is overkill-sized.
     # Frankly, I don't know why we need to do tensor[0][0].item() - but hey, it works.
     sizes = sizes[ : (sizes == 0).nonzero()[0][0].item() + 1]
+
+    # Only keeps the first zero if it would be correct to do so (i.e., the preceeding number is 1)
     dists = dists[ : (dists == 0).nonzero()[0][0].item() + 1]
+    if dists[-2] != 1:
+        dists = dists[ : -1]
+    
 
     return unrevealed, sizes, dists
 
@@ -464,3 +469,10 @@ def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor
 # .. Median time:         0.3860s
 # .. Minimum time:        0.4222s
 # .. Maximum time:        0.3763s
+
+# Changed trim condition for dists
+# .. Total time:          4.2144s
+# .. Mean time:           0.4214s
+# .. Median time:         0.3989s
+# .. Minimum time:        0.4668s
+# .. Maximum time:        0.4033s
