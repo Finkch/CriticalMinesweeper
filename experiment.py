@@ -7,6 +7,11 @@ from math import ceil
 
 from logger import log
 
+import signal
+
+def timeout_handler(signum, frame):
+    raise TimeoutError('Operation timed out.')
+
 
 class Experiment:
     def __init__(self, rho: float, cutoff: int, trials: int, do_cutoff: bool = True, r: int = 1, logdir: str = None) -> None:
@@ -22,6 +27,8 @@ class Experiment:
         self.results = []
         self.alphas = []
 
+        signal.signal(signal.SIGALRM, timeout_handler)
+
 
     # Starts the experiment
     def begin(self, quiet = True) -> dict:
@@ -31,19 +38,37 @@ class Experiment:
             print(f'.. Trials:\t{self.trials}')
             print(f'.. Density:\t{self.rho}')
             print(f'.. Cutoff:\t{self.cutoff}')
-        
+
+
         # Performs the experiment
-        for trial in range(self.trials):
+        for trial in range(self.trials):            
 
-            # Creates new board
-            #board = Minesweeper(self.rho, self.cutoff, self.r)
+            try:
 
-            # Runs a trial
-            reveals, sizes = minesweeper(self.rho, self.r, self.cutoff ** 0.5)
+                # Primes alarm
+                signal.alarm(60)
 
-            # Appends the results
-            self.results.append(reveals)
-            self.alphas.append(sizes.tolist())
+                # Creates new board
+                #board = Minesweeper(self.rho, self.cutoff, self.r)
+
+                # Runs a trial
+                reveals, sizes = minesweeper(self.rho, self.r, self.cutoff ** 0.5)
+
+                # Appends the results
+                self.results.append(reveals)
+                self.alphas.append(sizes.tolist())
+
+                # Disables alarm
+                signal.alarm(0)
+            
+            # Crash anyways so I can see what happened
+            except TimeoutError:
+                raise TimeoutError(f'Oh, stars! Have been sweeping mines for too long!')
+            
+            # Ensures alarm is deactivated
+            finally:
+                signal.alarm(0)
+
 
             # Stops the experiment if a board ever goes infinite
             if reveals >= self.cutoff and self.do_cutoff:
@@ -64,35 +89,51 @@ class Experiment:
     # Compresses the results
     def process(self) -> dict:
 
-        # A list of experimentally determined reveals, alphas packed together
-        reveals = self.results
-        alphas = self.alphas
+        try:
 
-        # Metadata of the experimental parameters
-        meta = {
-            'goal':     self.trials,
-            'trials':   len(self.results),
-            'rho':      self.rho,
-            'cutoff':   self.cutoff,
-            'd':        self.r,
-            'max':      max(self.results),
-            'min':      min(self.results),
-            'mean':     sum(self.results) / len(self.results),
-            'infinite': max(self.results) == self.cutoff
-        }
+            # Primes alarm
+            signal.alarm(10)
 
-        if len(alphas) > 0 and not isinstance(alphas[0], list):
-            meta['amin'] = min(self.alphas)
-            meta['amax'] = max(self.alphas)
-            meta['amean'] = sum(self.alphas) / len(self.alphas),
+            # A list of experimentally determined reveals, alphas packed together
+            reveals = self.results
+            alphas = self.alphas
 
-        # Logs the experiment
-        if self.logdir:
-            log(self.logdir, 'expReveals', reveals)
-            log(self.logdir, 'expMeta', meta)
+            # Metadata of the experimental parameters
+            meta = {
+                'goal':     self.trials,
+                'trials':   len(self.results),
+                'rho':      self.rho,
+                'cutoff':   self.cutoff,
+                'd':        self.r,
+                'max':      max(self.results),
+                'min':      min(self.results),
+                'mean':     sum(self.results) / len(self.results),
+                'infinite': max(self.results) == self.cutoff
+            }
 
-            if len(alphas) > 0:
-                log(self.logdir, 'expAlphas', alphas)
+            if len(alphas) > 0 and not isinstance(alphas[0], list):
+                meta['amin'] = min(self.alphas)
+                meta['amax'] = max(self.alphas)
+                meta['amean'] = sum(self.alphas) / len(self.alphas),
+
+            # Logs the experiment
+            if self.logdir:
+                log(self.logdir, 'expReveals', reveals)
+                log(self.logdir, 'expMeta', meta)
+
+                if len(alphas) > 0:
+                    log(self.logdir, 'expAlphas', alphas)
+
+            # Disables alarm
+            signal.alarm(0)
+
+        # Crash anyways so I can see what happened
+        except TimeoutError:
+            raise TimeoutError(f'Oh, change! Ran into issue logging results!')
+        
+        # Ensures alarm is deactivated
+        finally:
+            signal.alarm(0)
 
         return reveals, alphas, meta
 
