@@ -119,6 +119,25 @@ def frontiers():
         meta        = results['expMeta']
     )
 
+
+def broad_frontiers():
+
+    dir = 'Frontiers'
+
+    dir = f'Results/{dir}'
+
+    dirs = os.listdir(dir)
+
+    results_all = [unlog(f'{dir}/{exp}') for exp in dirs if exp != '.DS_Store']
+
+    results_all = sorted(results_all, key = lambda x: x['expMeta']['rho'])[::-1]
+
+    for results in results_all:
+        graph.show_frontiers(
+            frontiers   = [frontier for frontier in results['expAlphas']],
+            reveals     = [reveal for reveal in results['expReveals']],
+            meta        = results['expMeta']
+        )
     
 
 
@@ -127,4 +146,5 @@ def frontiers():
 #is_start_rho()
 #alphas()
 #max_alphas()
-frontiers()
+#frontiers()
+broad_frontiers()
