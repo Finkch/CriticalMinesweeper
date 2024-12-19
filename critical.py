@@ -6,6 +6,8 @@ from time import time
 
 from logger import log
 
+import numpy as np
+
 
 
 # Various methods to find what the step out to be
@@ -82,6 +84,33 @@ def down_step(self, meta: dict) -> tuple[float]:
 
     return rho, delta, step, s
 
+# Uses deltaf_mean as the metric
+def alpha_step(self, meta: dict) -> tuple[float]:
+    
+    # Obtains values
+    deltaf_mean = meta['dmean']
+    step = self.step
+    alpha = self.alpha
+    rho = self.rho
+
+    # We want delta_f -> 0; use a sigmoid to move it to this range.
+    # The 8 marks it steeper
+    s = step * (2 / (1 + np.e ** (-8 * deltaf_mean)) - 1)
+
+    # Updates density
+    delta = s * step
+
+    delta = max(-rho, min(1 - rho, delta))
+
+    rho = rho + delta
+
+    # Decreases step size exponentially
+    step = step * alpha
+
+    # Ensures valid density
+    assert 0 <= rho and rho <= 1, f'Invalid density "{rho}"'
+
+    return rho, delta, step, s
 
 
 
