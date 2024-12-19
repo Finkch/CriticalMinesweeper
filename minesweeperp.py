@@ -37,7 +37,7 @@ def minesweeper(rho: float, s: int, d: int, device: torch.device = None) -> list
 
 
     # Propogates while there is a frontier
-    unrevealed, sizes = sweep(frontier, unrevealed, zeroes, adj_kernal)
+    unrevealed, sizes, dists = sweep(frontier, unrevealed, zeroes, adj_kernal)
 
     # To calculate number of reveals, first find revealed cells
     revealed = lnot(unrevealed)
@@ -54,7 +54,7 @@ def minesweeper(rho: float, s: int, d: int, device: torch.device = None) -> list
 
 
     # Return results
-    return reveals, sizes
+    return reveals, sizes, dists
 
 
 # Precompiles tensor operations
@@ -73,7 +73,7 @@ def lnot(tensor: torch.Tensor) -> torch.Tensor:
     return torch.logical_not(tensor)
 
 @torch.jit.script
-def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor, adj_kernal: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor, adj_kernal: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
 
     # Grabs tensor dimension
     D = frontier.size()[0]
