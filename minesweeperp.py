@@ -146,9 +146,8 @@ def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor
 
 
     # Trims unused array
-    sizes = sizes[ : i]
     dists = dists[ : i]
-    
+    sizes = sizes[ : i if dists[-1] == 0 else i + 1]
 
     return unrevealed, sizes, dists
 
@@ -478,3 +477,10 @@ def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor
 # .. Median time:         0.4000s
 # .. Minimum time:        0.4213s
 # .. Maximum time:        0.3872s
+
+# Fixed trim logic (sizes needs i + 1 if it died out)
+# .. Total time:          3.9963s
+# .. Mean time:           0.3996s
+# .. Median time:         0.3846s
+# .. Minimum time:        0.4273s
+# .. Maximum time:        0.3939s
