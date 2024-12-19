@@ -75,17 +75,55 @@ def lnot(tensor: torch.Tensor) -> torch.Tensor:
 @torch.jit.script
 def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor, adj_kernal: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
 
-    # Used to track alpha.
+    # Grabs tensor dimension
+    D = frontier.size()[0]
+
     # Silly large tensor because script requires not-mutable data structures.
     # And yes, this size of tensor is guaranteed to have sufficient space
-    sizes = torch.zeros(int(frontier.size()[0] ** 2 / 2), dtype = torch.int32, device = frontier.device)
+    # Used to track alpha.
+    sizes = torch.zeros(int(D ** 2 / 2), dtype = torch.int32, device = frontier.device)
+    
+    # Used to track the wavefront closest to the edge of the tensor
+    dists = torch.zeros(int(D ** 2 / 2), dtype = torch.int32, device = frontier.device)
+
+    # Frontier step
     i = 0
 
     # Sweep until the frontier wave-front goes exctinct
     while frontier.any():
 
-        # Adds 
+        # Tracks the size of the frontier
         sizes[i] = torch.sum(frontier).item()
+
+        # Tracks distance from frontier to edge
+        frontier_indices = frontier.nonzero()
+
+        # Rows and columns
+        r = frontier_indices[:, 0]
+        c = frontier_indices[:, 1]
+
+        # Gets distances to each edge
+        dist_top    = r
+        dist_bottom = D - 1 - r
+        dist_left   = c
+        dist_right  = D - 1 - c
+
+        # Calculates the minimum distance
+        dist_min = torch.min(
+            torch.cat([
+                dist_top,
+                dist_bottom,
+                dist_left,
+                dist_right
+            ])
+        ).item()
+        dists[i] = dist_min
+
+        # Breaks early when the frontier reaches the edge 
+        if dist_min == 0:
+            break
+
+        # Increments step
         i += 1
 
         # Updates revealed cells
@@ -107,12 +145,13 @@ def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor
         frontier = neighbours & unrevealed & zeroes
 
 
-    # Trims off all right-hand zeroes but the first.
+    # Trims off all right-hand zeroes aside from the first.
     # Guaranteed to be at least once since the 1d tensor is overkill-sized.
     # Frankly, I don't know why we need to do tensor[0][0].item() - but hey, it works.
     sizes = sizes[ : (sizes == 0).nonzero()[0][0].item() + 1]
+    dists = dists[ : (dists == 0).nonzero()[0][0].item() + 1]
 
-    return unrevealed, sizes
+    return unrevealed, sizes, dists
 
 #       END Precompiled tensoro operations
 
@@ -395,3 +434,33 @@ def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor
 # .. Median time:         0.3116s
 # .. Minimum time:        0.3425s
 # .. Maximum time:        0.3179s
+
+# Whatever I left it last time:
+#       CPU
+# .. Total time:          3.0401s
+# .. Mean time:           0.3040s
+# .. Median time:         0.2949s
+# .. Minimum time:        0.3505s
+# .. Maximum time:        0.2925s
+
+# Tracking the min distance from wavefront to the edge of the grid
+#       CPU
+# .. Total time:          3.1364s
+# .. Mean time:           0.3136s
+# .. Median time:         0.2989s
+# .. Minimum time:        0.3671s
+# .. Maximum time:        0.3126s
+
+# Breaking when reveals first reach the edge
+# .. Total time:          4.0825s
+# .. Mean time:           0.4083s
+# .. Median time:         0.4102s
+# .. Minimum time:        0.4311s
+# .. Maximum time:        0.3987s
+
+# Temp variable to prevent unnecessary lookup
+# .. Total time:          3.9120s
+# .. Mean time:           0.3912s
+# .. Median time:         0.3860s
+# .. Minimum time:        0.4222s
+# .. Maximum time:        0.3763s
