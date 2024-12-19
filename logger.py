@@ -57,6 +57,9 @@ def unlog(path: str):
                             splits = line[0].replace('[', '').replace(']', '').split(', ')
                             results['expAlphas'].append([int(frontier) for frontier in splits])
 
+            case 'expDists.csv':
+                pass    # For now, ignore this one
+
             case 'expMeta.csv':
                 results['expMeta'] = {}
                 with open(f'{path}/{file}') as f:
