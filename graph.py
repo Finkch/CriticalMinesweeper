@@ -278,7 +278,22 @@ def show_frontiers(frontiers, reveals, meta):
     deltaf_means = np.array([sum(delta) / len(delta) for delta in deltaf])
     growth = deltaf_means.mean()
     growth_unc = deltaf_means.std() / np.sqrt(len(deltaf_means))
-    print(f'\n\tAverage delta_f:\t{sigfigs(growth, growth_unc)}\n')
+    print(f'\n\tAverage delta_f for rho = {meta["rho"]}:\t{sigfigs(growth, growth_unc)}\n')
+
+
+    # Performs a column-wise mean rather than a row-wise mean
+    cw = sorted(deltaf, key = lambda x: len(x), reverse = True) # cw for column-wise
+    column_mean = []
+    for i in range(len(cw[0])): # Iterates over the longest row
+
+        # Trims all rows shorter than i
+        cw = [row for row in cw if len(row) > i]
+
+        # Creates the column
+        col = [cw[j][i] for j in range(len(cw))]
+
+        # Adds the column's mean
+        column_mean.append(sum(col) / len(col))
 
 
     # Packs, sorts, and unpacks important lists.
@@ -288,11 +303,17 @@ def show_frontiers(frontiers, reveals, meta):
         [(frontiers[i], deltaf[i]) for i in range(len(frontiers))], # Packes together data
         key = lambda x: len(x[0]),                                  # Sorts based on iterations to die out
         reverse = True                                              # Plot biggest first, so it doesn't overshadow
-    )[:: len(frontiers) // 5]                                       # Slices to get evenly spaced
+    #)[:: len(frontiers) // 5]                                       # Slices to get evenly spaced
+    )
 
     # Unpacks data again
     frontiers = [tup[0] for tup in packed]
     deltaf = [tup[1] for tup in packed]
+
+    # Makes a subset of data so the plots look reasonable rather than just noise.
+    fraction        = 5 # What fraction of data to include
+    frontiers_few   = frontiers[::  len(frontiers)  // fraction]
+    deltaf_few      = deltaf[::     len(deltaf)     // fraction]
 
 
     # prepares to plot
@@ -301,25 +322,70 @@ def show_frontiers(frontiers, reveals, meta):
     # Frontier sizes.
     # If |f| -> 0, it dies out.
     # Plots in reverse 
-    for frontier in frontiers:
+    for frontier in frontiers_few:
         axes[0].plot(
             [i for i in range(len(frontier))],
             frontier,
-            label = u'$f_{max}$' + f' = {max(frontier)}'
+            #label = u'$f_{max}$' + f' = {max(frontier)}',
+            linewidth = 0.5
         )
-    axes[0].set_xlabel('frontier index, i (unitless)')
-    axes[0].set_ylabel('frontier size, |f| (unitless)')
 
     # Shows the change in successive frontier sizes
-    for delta in deltaf:
+    for delta in deltaf_few:
         axes[1].plot(
             [i for i in range(len(delta))],
             delta,
-            label = u'mean $\delta$' + f' = {sum(delta) / len(delta):.4f}'
+            #label = u'mean $\delta$' + f' = {sum(delta) / len(delta):.4f}',
+            linewidth = 0.5
         )
+
+
+    # Shows column-wise mean of delta_f
+    axes[1].plot(
+        [i for i in range(len(column_mean))],
+        column_mean,
+        label = u'$\delta_f$ = ' + f'{sigfigs(growth, growth_unc)}',
+        linewidth = 2
+    )
+    axes[1].axhline(y = 0, color = 'black')
+
+
+    # Shows the mean frontier size by plotting its prefix sum
+    fx = [i for i in range(len(column_mean))]
+    frontier_prefix = [sum(column_mean[ : i + 1]) for i in range(len(column_mean))]
+
+    # Performs a linear fit to the mean frontier size
+    fits, cov = curve_fit(linear, fx, frontier_prefix, (1, 0))
+    uncs = np.sqrt(np.diag(cov))
+
+    # Creates some y-data for the linear fit
+    fit_curve = [linear(x, *fits) for x in fx]
+
+    # Plots mean frontier
+    axes[0].plot(
+        fx,
+        frontier_prefix,
+    )
+
+    # Plots linear fit of mean frontier
+    axes[0].plot(
+        fx,
+        fit_curve,
+        label = f'y = {sigfigs(fits[0], uncs[0])} * x + {sigfigs(fits[1], uncs[1])}',
+        color = 'black'
+    )
+    axes[0].set_xlabel('frontier index, i (unitless)')
+    axes[0].set_ylabel(u'mean |$f_i$| (unitless)')
+
+
+    # Adds axes labels
+    axes[0].set_xlabel('frontier index, i (unitless)')
+    axes[0].set_ylabel('frontier size, |f| (unitless)')
+    
     axes[1].set_xlabel('frontier index, i (unitless)')
     axes[1].set_ylabel(u'$\delta_f$ (unitless)')
 
+    # Adds legends
     axes[0].legend()
     axes[1].legend()
 
