@@ -26,6 +26,7 @@ class Experiment:
 
         self.results = []
         self.alphas = []
+        self.dists = []
 
         signal.signal(signal.SIGALRM, timeout_handler)
 
@@ -52,11 +53,12 @@ class Experiment:
                 #board = Minesweeper(self.rho, self.cutoff, self.r)
 
                 # Runs a trial
-                reveals, sizes = minesweeper(self.rho, self.r, self.cutoff ** 0.5)
+                reveals, sizes, dists = minesweeper(self.rho, self.r, self.cutoff ** 0.5)
 
                 # Appends the results
                 self.results.append(reveals)
                 self.alphas.append(sizes.tolist())
+                self.dists.append(dists.tolist())
 
                 # Disables alarm
                 signal.alarm(0)
@@ -97,6 +99,7 @@ class Experiment:
             # A list of experimentally determined reveals, alphas packed together
             reveals = self.results
             alphas = self.alphas
+            dists = self.dists
 
             # Metadata of the experimental parameters
             meta = {
@@ -111,10 +114,12 @@ class Experiment:
                 'infinite': max(self.results) == self.cutoff
             }
 
+            # Adds extra info
             if len(alphas) > 0 and not isinstance(alphas[0], list):
-                meta['amin'] = min(self.alphas)
-                meta['amax'] = max(self.alphas)
-                meta['amean'] = sum(self.alphas) / len(self.alphas),
+                meta['amin'] = min(alphas)
+                meta['amax'] = max(alphas)
+                meta['amean'] = sum(alphas) / len(alphas),
+
 
             # Logs the experiment
             if self.logdir:
@@ -123,6 +128,9 @@ class Experiment:
 
                 if len(alphas) > 0:
                     log(self.logdir, 'expAlphas', alphas)
+
+                if len(dists) > 0:
+                    log(self.logdir, 'expDists', dists)
 
             # Disables alarm
             signal.alarm(0)
