@@ -82,7 +82,7 @@ class Experiment:
 
         if not quiet:
             print(f'100%')
-            print(f'Experimetn concluded.\n\n')
+            print(f'Experiment concluded.\n\n')
 
         # Returns a compressed set of results
         return self.process()
