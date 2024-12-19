@@ -119,12 +119,12 @@ def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor
         ).item()
         dists[i] = dist_min
 
+        # Increments step
+        i += 1
+
         # Breaks early when the frontier reaches the edge 
         if dist_min == 0:
             break
-
-        # Increments step
-        i += 1
 
         # Updates revealed cells
         unrevealed ^= frontier
@@ -145,15 +145,9 @@ def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor
         frontier = neighbours & unrevealed & zeroes
 
 
-    # Trims off all right-hand zeroes aside from the first.
-    # Guaranteed to be at least once since the 1d tensor is overkill-sized.
-    # Frankly, I don't know why we need to do tensor[0][0].item() - but hey, it works.
-    sizes = sizes[ : (sizes == 0).nonzero()[0][0].item() + 1]
-
-    # Only keeps the first zero if it would be correct to do so (i.e., the preceeding number is 1)
-    dists = dists[ : (dists == 0).nonzero()[0][0].item() + 1]
-    if dists[-2] != 1:
-        dists = dists[ : -1]
+    # Trims unused array
+    sizes = sizes[ : i]
+    dists = dists[ : i]
     
 
     return unrevealed, sizes, dists
@@ -476,3 +470,11 @@ def sweep(frontier: torch.Tensor, unrevealed: torch.Tensor, zeroes: torch.Tensor
 # .. Median time:         0.3989s
 # .. Minimum time:        0.4668s
 # .. Maximum time:        0.4033s
+
+# Wasn't an idiot for trimming data (I HAVE THE INDEX, I DON'T NEED TO FIND IT).
+# In other words, my greatest dissapointment for time loss
+# .. Total time:          3.9373s
+# .. Mean time:           0.3937s
+# .. Median time:         0.4000s
+# .. Minimum time:        0.4213s
+# .. Maximum time:        0.3872s
