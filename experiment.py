@@ -115,10 +115,18 @@ class Experiment:
             }
 
             # Adds extra info
-            if len(alphas) > 0 and not isinstance(alphas[0], list):
-                meta['amin'] = min(alphas)
-                meta['amax'] = max(alphas)
-                meta['amean'] = sum(alphas) / len(alphas),
+            if len(alphas) > 0:
+                if not isinstance(alphas[0], list):
+                    meta['amin'] = min(alphas)
+                    meta['amax'] = max(alphas)
+                    meta['amean'] = sum(alphas) / len(alphas)
+                else:
+                    deltaf = [[frontier[i + 1] - frontier[i] for i in range(len(frontier) - 1)] for frontier in alphas]
+                    deltaf_means = [sum(df) / len(df) for df in deltaf]
+                    
+                    meta['dmin'] = min(deltaf_means)
+                    meta['dmax'] = max(deltaf_means)
+                    meta['dmean'] = sum(deltaf_means) / len(deltaf_means)
 
 
             # Logs the experiment
@@ -149,7 +157,7 @@ class Experiment:
     def __str__(self) -> str:
 
         mean = sum(self.results) / len(self.results)
-        #amean = sum(self.alphas) / len(self.alphas)
+        alphas = self.alphas
 
         s = 'Experiment results: valid density.\n' if max(self.results) < self.cutoff else 'Experiment results: INFINTIE.\n'
 
@@ -160,9 +168,19 @@ class Experiment:
         s += f'.. Average reveals:\t{mean}\t({mean / self.cutoff * 100:.2f}%)\n'
         s += f'.. Minimum reveals:\t{min(self.results)}\n'
         s += f'.. Maximum reveals:\t{max(self.results)}\n'
-        # s += f'.. Average alpha:\t{amean:.2f}\n'
-        # s += f'.. Minimum alpha:\t{min(self.alphas):.2f}\n'
-        # s += f'.. Maximum alpha:\t{max(self.alphas):.2f}\n'
+
+        if len(alphas) > 0:
+            if not isinstance(alphas[0], list):
+                s += f'.. Average alpha:\t{sum(alphas) / len(alphas)}\n'
+                s += f'.. Minimum alpha:\t{min(alphas)}\n'
+                s += f'.. Maximum alpha:\t{max(alphas)}\n'
+            else:
+                deltaf = [[frontier[i + 1] - frontier[i] for i in range(len(frontier) - 1)] for frontier in alphas]
+                deltaf_means = [sum(df) / len(df) for df in deltaf]
+
+                s += f'.. Average delta:\t{sum(deltaf_means) / len(deltaf_means)}\n'
+                s += f'.. Minimum alpha:\t{min(deltaf_means)}\n'
+                s += f'.. Maximum alpha:\t{max(deltaf_means)}\n'
 
         return s
 
